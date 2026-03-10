@@ -2,39 +2,59 @@
 
 @section('gradient-content')
     <div class="container mx-auto p-2">
-        <div class="flex justify-center space-x-4 items-center">
-            @if($serverStatus['favicon'])
-                <img src="{{ $serverStatus['favicon'] }}" style="width:64px;height:64px;" alt="Server favicon">
-            @endif
-            <div>
-                <div class="mb-2 flex items-center gap-2 text-xs">
-                    <span class="rounded-full px-3 py-1 {{ $serverStatus['is_online'] ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300' }}">
-                        {{ $serverStatus['is_online'] ? '在线' : '离线' }}
-                    </span>
-                    <span class="rounded-full bg-white/10 px-3 py-1 text-[#AAAAAA]">
-                        {{ $serverStatus['query_available'] ? 'Query 可用' : '仅 Ping' }}
-                    </span>
+        <div class="mx-auto max-w-3xl">
+            <div class="flex min-h-10 items-center rounded-t-xl border border-white/10 bg-black/30 px-4 py-2 text-sm text-[#FFAA00]">
+                {{ $serverStatus['version'] }}
+            </div>
+
+            <div class="flex items-start gap-4 border border-t-0 border-white/10 bg-black/20 p-4">
+                <div class="flex w-16 shrink-0 flex-col items-center">
+                    @if($serverStatus['favicon'])
+                        <img
+                            src="{{ $serverStatus['favicon'] }}"
+                            class="h-16 w-16 rounded-sm border border-white/10"
+                            alt="Server favicon"
+                        >
+                    @else
+                        <div class="h-16 w-16 rounded-sm border border-white/10 bg-black/30"></div>
+                    @endif
                 </div>
-                <div class="text-3xl leading-tight tracking-tight [&_span]:align-middle">
-                    {!! $serverStatus['motd_html'] !!}
+
+                <div class="flex min-w-0 flex-1 items-start justify-between gap-4">
+                    <div class="min-w-0 flex-1 pt-1 text-base leading-tight tracking-tight [&_span]:align-middle">
+                        {!! $serverStatus['motd_html'] !!}
+                    </div>
+
+                    <div class="flex shrink-0 flex-col items-end gap-2 self-start pt-1 text-right">
+                        <div
+                            id="latency-signal"
+                            data-ping-url="{{ route('latency-ping') }}"
+                            class="flex items-end gap-0.5"
+                            title="正在测量延迟"
+                            aria-label="正在测量延迟"
+                        >
+                            <span data-bar class="w-1 rounded-sm bg-[#555555]" style="height: 4px;"></span>
+                            <span data-bar class="w-1 rounded-sm bg-[#555555]" style="height: 7px;"></span>
+                            <span data-bar class="w-1 rounded-sm bg-[#555555]" style="height: 10px;"></span>
+                            <span data-bar class="w-1 rounded-sm bg-[#555555]" style="height: 13px;"></span>
+                            <span data-bar class="w-1 rounded-sm bg-[#555555]" style="height: 16px;"></span>
+                        </div>
+
+                        <div class="text-xs leading-none text-[#FFAA00]">
+                            {{ $serverStatus['online_players'] }} / {{ $serverStatus['max_players'] }}
+                        </div>
+                    </div>
                 </div>
-                <h2 class="text-[#AAAAAA]">{{ $serverStatus['display_subtitle'] }}</h2>
-            </div>
-        </div>
-
-        <div class="flex flex-col items-center space-y-4">
-            <div class="text-[#AAAAAA]">
-                版本：<span class="text-[#55FF55]">{{ $serverStatus['version'] }}</span>
-                {{ $serverStatus['server_flavor'] }}
-                {{ $serverStatus['software'] }}
             </div>
 
-            <div class="text-[#AAAAAA]">
-                单人｜多人：{{ $serverStatus['game_mode'] }}
-            </div>
-
-            <div class="text-sm text-[#AAAAAA]">
-                服务器地址 {{ $serverStatus['endpoint'] }}，查询用时 {{ $serverStatus['timer'] }} 秒
+            <div class="flex min-h-10 items-center justify-between gap-4 rounded-b-xl border border-t-0 border-white/10 bg-black/30 px-4 py-2 text-sm text-[#AAAAAA]">
+                <div class="min-w-0 truncate">
+                    {{ $serverStatus['server_flavor'] }}
+                    {{ $serverStatus['software'] }}
+                </div>
+                <div class="shrink-0">
+                    查询用时 {{ $serverStatus['timer'] }} 秒
+                </div>
             </div>
         </div>
 
@@ -55,8 +75,6 @@
         @endif
 
         <div class="mt-8">
-            <div class="text-[#FFAA00] mb-4">在线玩家：{{ $serverStatus['online_players'] }} / {{ $serverStatus['max_players'] }}</div>
-
             @if(!empty($serverStatus['players']))
                 <div class="flex content-center space-x-2">
                     <div class="flex space-x-1 justify-center flex-wrap">
@@ -68,10 +86,6 @@
                             </div>
                         @endforeach
                     </div>
-                </div>
-            @elseif($serverStatus['is_online'])
-                <div class="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-[#AAAAAA]">
-                    当前没有在线玩家，或者服务器没有返回玩家列表。
                 </div>
             @endif
         </div>
@@ -88,4 +102,89 @@
     @else
         <div style="border-bottom: 3rem solid;border-image: url(/images/minecraft_grass_block_texture.jpg) 1280 0 repeat;" />
     @endif
+
+    <script>
+        (() => {
+            const signal = document.getElementById('latency-signal');
+
+            if (!signal) {
+                return;
+            }
+
+            const bars = Array.from(signal.querySelectorAll('[data-bar]'));
+            const activeClass = 'bg-[#55FF55]';
+            const inactiveClass = 'bg-[#555555]';
+
+            const setBars = (count, label) => {
+                bars.forEach((bar, index) => {
+                    bar.classList.remove(activeClass, inactiveClass);
+                    bar.classList.add(index < count ? activeClass : inactiveClass);
+                });
+
+                signal.title = label;
+                signal.setAttribute('aria-label', label);
+            };
+
+            const barsForLatency = (latency) => {
+                if (!Number.isFinite(latency)) {
+                    return 0;
+                }
+
+                if (latency < 150) {
+                    return 5;
+                }
+
+                if (latency < 300) {
+                    return 4;
+                }
+
+                if (latency < 600) {
+                    return 3;
+                }
+
+                if (latency < 1000) {
+                    return 2;
+                }
+
+                return 1;
+            };
+
+            const measureLatency = async () => {
+                const url = signal.dataset.pingUrl;
+
+                if (!url) {
+                    setBars(0, '无法测量延迟');
+                    return;
+                }
+
+                const samples = [];
+
+                for (let index = 0; index < 3; index++) {
+                    const startedAt = performance.now();
+
+                    const response = await fetch(`${url}?t=${Date.now()}-${index}`, {
+                        cache: 'no-store',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Unexpected status ${response.status}`);
+                    }
+
+                    samples.push(performance.now() - startedAt);
+                }
+
+                const latency = Math.round(samples.reduce((sum, value) => sum + value, 0) / samples.length);
+                setBars(barsForLatency(latency), `当前站点延迟 ${latency} ms`);
+            };
+
+            setBars(0, '正在测量延迟');
+
+            measureLatency().catch(() => {
+                setBars(0, '无法测量延迟');
+            });
+        })();
+    </script>
 @endsection

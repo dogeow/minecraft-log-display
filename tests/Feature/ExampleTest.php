@@ -16,4 +16,11 @@ class ExampleTest extends TestCase
 
         $response->assertStatus(200);
     }
+
+    public function test_the_latency_ping_endpoint_returns_no_content(): void
+    {
+        $response = $this->get('/ping');
+
+        $response->assertNoContent();
+    }
 }

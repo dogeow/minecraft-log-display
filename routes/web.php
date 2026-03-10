@@ -9,6 +9,10 @@ use App\Http\Controllers\AdminController;
 
 // 公开路由
 Route::get('/', [DashboardController::class, 'index'])->name('home');
+Route::get('/ping', fn () => response()->noContent(204, [
+    'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+    'Pragma' => 'no-cache',
+]))->name('latency-ping');
 Route::get('/users', [DashboardController::class, 'users'])->name('users');
 Route::get('/daily-stats', [DailyStatController::class, 'index'])->name('daily-stats.index');
 Route::get('/logins', [LoginController::class, 'index'])->name('logins.index');

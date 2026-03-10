@@ -7,7 +7,7 @@
         <div class="container mx-auto px-4">
             <div class="flex flex-col md:flex-row md:justify-between md:items-center py-3">
                 <div class="flex justify-between items-center">
-                    <a href="{{ route('home') }}" class="text-xl font-bold text-white">MC Log</a>
+                    <a href="{{ route('home') }}" class="text-xl font-bold text-white">我的世界</a>
                     <button class="md:hidden rounded-lg focus:outline-none focus:shadow-outline" id="menuBtn">
                         <svg fill="currentColor" viewBox="0 0 20 20" class="w-6 h-6 text-white">
                             <path id="menuIcon" fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM9 15a1 1 0 011-1h6a1 1 0 110 2h-6a1 1 0 01-1-1z"></path>

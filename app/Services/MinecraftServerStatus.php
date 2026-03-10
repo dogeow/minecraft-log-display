@@ -2,35 +2,27 @@
 
 namespace App\Services;
 
-use App\Services\Minecraft\MinecraftPing;
-use App\Services\Minecraft\MinecraftQuery;
+use xPaw\MinecraftPing;
+use xPaw\MinecraftQuery;
 
 class MinecraftServerStatus
 {
-    public function getServerStatus()
+    public function getServerStatus(): array
     {
-        $timer = microtime(true);
-        
-        $info = $this->createPing(
-            config('minecraft.server.ip'),
-            config('minecraft.server.port'),
-            config('minecraft.server.timeout')
-        );
-        
-        list($queryInfo, $players) = $this->createQuery(
-            config('minecraft.server.ip'),
-            config('minecraft.server.query_port')
-        );
-        
-        $timer = number_format(microtime(true) - $timer, 4, '.', '');
+        $host = (string) config('minecraft.server.ip');
+        $port = (int) config('minecraft.server.port');
+        $queryPort = (int) config('minecraft.server.query_port');
+        $timeout = (float) config('minecraft.server.timeout', 1);
 
-        // 确保 players 始终是数组
+        $timer = microtime(true);
+
+        $info = $this->createPing($host, $port, $timeout);
+        [$queryInfo, $players] = $this->createQuery($host, $queryPort, $timeout);
+
+        $timer = number_format(microtime(true) - $timer, 4, '.', '');
         $players = is_array($players) ? $players : [];
-        
-        // 确保 queryInfo 始终是数组
         $queryInfo = is_array($queryInfo) ? $queryInfo : [];
-        
-        // 设置默认值
+
         $queryInfo = array_merge([
             'GameName' => '未知',
             'HostName' => '未知',
@@ -46,35 +38,48 @@ class MinecraftServerStatus
             'info' => $info,
             'queryInfo' => $queryInfo,
             'players' => $players,
-            'timer' => $timer
+            'timer' => $timer,
         ];
     }
 
-    private function createPing($host, $port, $timeout)
+    private function createPing(string $host, int $port, float $timeout): array
     {
+        $ping = null;
+
         try {
             $ping = new MinecraftPing($host, $port, $timeout);
-            return $ping->Query();
-        } catch (\Exception $e) {
+            $info = $ping->Query();
+
+            if ($info === false) {
+                $ping->Close();
+                $ping->Connect();
+                $info = $ping->QueryOldPre17();
+            }
+
+            return is_array($info) ? $info : [];
+        } catch (\Throwable) {
             return [];
+        } finally {
+            if ($ping instanceof MinecraftPing) {
+                $ping->Close();
+            }
         }
     }
 
-    private function createQuery($host, $port)
+    private function createQuery(string $host, int $port, float $timeout): array
     {
         try {
             $query = new MinecraftQuery();
-            $query->Connect($host, $port);
+            $query->Connect($host, $port, $timeout);
             $info = $query->GetInfo();
             $players = $query->GetPlayers();
-            
-            // 确保返回值是数组
+
             return [
                 is_array($info) ? $info : [],
-                is_array($players) ? $players : []
+                is_array($players) ? array_values($players) : [],
             ];
-        } catch (\Exception $e) {
+        } catch (\Throwable) {
             return [[], []];
         }
     }
-} 
+}

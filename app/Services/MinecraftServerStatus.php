@@ -83,9 +83,6 @@ class MinecraftServerStatus
         $info = is_array($pingResult['info'] ?? null) ? $pingResult['info'] : [];
         $queryInfo = is_array($queryResult['info'] ?? null) ? $queryResult['info'] : [];
         $players = is_array($queryResult['players'] ?? null) ? array_values($queryResult['players']) : [];
-        $description = $this->normalizeMinecraftText(
-            $this->minecraftDescriptionToText($info['description'] ?? null)
-        );
         $queryAvailable = ($queryResult['error'] ?? null) === null;
 
         $normalizedQueryInfo = array_merge([
@@ -111,12 +108,11 @@ class MinecraftServerStatus
             $normalizedQueryInfo['MaxPlayers'] = (int) $info['players']['max'];
         }
 
-        $hostName = $normalizedQueryInfo['HostName'] !== '未知'
-            ? $this->normalizeMinecraftText((string) $normalizedQueryInfo['HostName'])
-            : '';
+        $motd = $this->buildMotd(
+            $info['description'] ?? null,
+            $normalizedQueryInfo['HostName'] !== '未知' ? (string) $normalizedQueryInfo['HostName'] : ''
+        );
         $statusText = ($pingResult['error'] ?? null) === null ? '服务器在线' : '服务器离线或不可访问';
-        $displayName = $description !== '' ? $description : ($hostName !== '' ? $hostName : 'Minecraft 服务器');
-        $displaySubtitle = $description !== '' ? $statusText : ($hostName !== '' ? $statusText : $statusText);
 
         return [
             'info' => $info,
@@ -131,8 +127,9 @@ class MinecraftServerStatus
                 $pingResult['error'] ?? null,
                 $queryResult['error'] ?? null,
             ])),
-            'display_name' => $displayName,
-            'display_subtitle' => $displaySubtitle,
+            'display_name' => $motd['plain'],
+            'display_subtitle' => $statusText,
+            'motd_html' => $motd['html'],
             'version' => (string) $normalizedQueryInfo['Version'],
             'server_flavor' => empty($normalizedQueryInfo['Plugins']) ? '原版服务器' : 'Mod 服务器',
             'software' => $normalizedQueryInfo['Software'] !== ''
@@ -147,44 +144,317 @@ class MinecraftServerStatus
         ];
     }
 
-    protected function minecraftDescriptionToText(mixed $description): string
+    protected function buildMotd(mixed $description, string $hostName): array
     {
+        $fragments = $this->extractMinecraftFragments($description);
+
+        if ($fragments === [] && $hostName !== '') {
+            $fragments = $this->parseLegacyMinecraftText($hostName);
+        }
+
+        if ($fragments === []) {
+            $fallback = 'Minecraft 服务器';
+
+            return [
+                'plain' => $fallback,
+                'html' => htmlspecialchars($fallback, ENT_QUOTES, 'UTF-8'),
+            ];
+        }
+
+        $plain = trim(implode('', array_column($fragments, 'text')));
+
+        return [
+            'plain' => $plain,
+            'html' => $this->renderMinecraftFragmentsAsHtml($fragments),
+        ];
+    }
+
+    protected function extractMinecraftFragments(mixed $description, ?array $parentStyle = null): array
+    {
+        $style = $parentStyle ?? $this->defaultMinecraftStyle();
+
         if (is_scalar($description)) {
-            return trim((string) $description);
+            return $this->parseLegacyMinecraftText((string) $description, $style);
         }
 
         if (! is_array($description)) {
-            return '';
+            return [];
         }
 
-        $parts = [];
+        if (array_is_list($description)) {
+            $fragments = [];
+
+            foreach ($description as $item) {
+                array_push($fragments, ...$this->extractMinecraftFragments($item, $style));
+            }
+
+            return $fragments;
+        }
+
+        $style = $this->applyComponentStyle($style, $description);
+        $fragments = [];
 
         if (isset($description['text']) && is_scalar($description['text'])) {
-            $parts[] = (string) $description['text'];
+            array_push($fragments, ...$this->parseLegacyMinecraftText((string) $description['text'], $style));
+        } elseif (isset($description['translate']) && is_scalar($description['translate'])) {
+            array_push($fragments, ...$this->parseLegacyMinecraftText((string) $description['translate'], $style));
         }
 
         if (isset($description['extra']) && is_array($description['extra'])) {
             foreach ($description['extra'] as $item) {
-                $parts[] = $this->minecraftDescriptionToText($item);
+                array_push($fragments, ...$this->extractMinecraftFragments($item, $style));
             }
         }
 
-        if ($parts === []) {
-            foreach ($description as $item) {
-                $parts[] = $this->minecraftDescriptionToText($item);
-            }
-        }
-
-        return trim(preg_replace('/\s+/', ' ', implode('', $parts)) ?? '');
+        return $fragments;
     }
 
-    protected function normalizeMinecraftText(string $text): string
+    protected function parseLegacyMinecraftText(string $text, ?array $baseStyle = null): array
     {
-        $text = preg_replace('/(?:§[0-9A-FK-ORX])/iu', '', $text) ?? $text;
-        $text = preg_replace('/[\x00-\x1F\x7F]/u', '', $text) ?? $text;
-        $text = preg_replace('/\s+/u', ' ', $text) ?? $text;
+        $style = $baseStyle ?? $this->defaultMinecraftStyle();
+        $text = str_replace(["\r\n", "\r", "\f"], "\n", $text);
+        $chars = preg_split('//u', $text, -1, PREG_SPLIT_NO_EMPTY);
 
-        return trim($text);
+        if ($chars === false) {
+            return [[
+                'text' => $text,
+                'style' => $style,
+            ]];
+        }
+
+        $fragments = [];
+        $buffer = '';
+        $charCount = count($chars);
+
+        for ($index = 0; $index < $charCount; $index++) {
+            $char = $chars[$index];
+
+            if ($char !== '§') {
+                $buffer .= $char;
+                continue;
+            }
+
+            if ($index + 1 >= $charCount) {
+                $buffer .= $char;
+                continue;
+            }
+
+            $code = strtolower($chars[$index + 1]);
+            $hexColor = null;
+
+            if ($code === 'x' && $index + 13 < $charCount) {
+                $hexDigits = '';
+                $isHexSequence = true;
+
+                for ($hexIndex = 0; $hexIndex < 6; $hexIndex++) {
+                    $sectionIndex = $index + 2 + ($hexIndex * 2);
+                    $digitIndex = $sectionIndex + 1;
+
+                    if (($chars[$sectionIndex] ?? null) !== '§' || ! ctype_xdigit($chars[$digitIndex] ?? '')) {
+                        $isHexSequence = false;
+                        break;
+                    }
+
+                    $hexDigits .= $chars[$digitIndex];
+                }
+
+                if ($isHexSequence) {
+                    $hexColor = '#'.strtoupper($hexDigits);
+                    $index += 13;
+                }
+            }
+
+            if ($buffer !== '') {
+                $fragments[] = [
+                    'text' => $buffer,
+                    'style' => $style,
+                ];
+                $buffer = '';
+            }
+
+            if ($hexColor !== null) {
+                $style = $this->applyLegacyFormattingCode($style, $hexColor);
+                continue;
+            }
+
+            $style = $this->applyLegacyFormattingCode($style, $code);
+            $index++;
+        }
+
+        if ($buffer !== '') {
+            $fragments[] = [
+                'text' => $buffer,
+                'style' => $style,
+            ];
+        }
+
+        return $fragments;
+    }
+
+    protected function applyLegacyFormattingCode(array $style, string $code): array
+    {
+        $colors = $this->minecraftColorMap();
+
+        if (str_starts_with($code, '#')) {
+            return array_merge($this->defaultMinecraftStyle(), ['color' => $code]);
+        }
+
+        if (isset($colors[$code])) {
+            return array_merge($this->defaultMinecraftStyle(), ['color' => $colors[$code]]);
+        }
+
+        return match ($code) {
+            'k' => array_merge($style, ['obfuscated' => true]),
+            'l' => array_merge($style, ['bold' => true]),
+            'm' => array_merge($style, ['strikethrough' => true]),
+            'n' => array_merge($style, ['underlined' => true]),
+            'o' => array_merge($style, ['italic' => true]),
+            'r' => $this->defaultMinecraftStyle(),
+            default => $style,
+        };
+    }
+
+    protected function applyComponentStyle(array $style, array $component): array
+    {
+        if (isset($component['color']) && is_string($component['color'])) {
+            $style['color'] = $this->resolveMinecraftColor($component['color']) ?? $style['color'];
+        }
+
+        foreach ([
+            'bold' => 'bold',
+            'italic' => 'italic',
+            'underlined' => 'underlined',
+            'strikethrough' => 'strikethrough',
+            'obfuscated' => 'obfuscated',
+        ] as $key => $target) {
+            if (array_key_exists($key, $component)) {
+                $style[$target] = (bool) $component[$key];
+            }
+        }
+
+        return $style;
+    }
+
+    protected function renderMinecraftFragmentsAsHtml(array $fragments): string
+    {
+        $html = '';
+
+        foreach ($fragments as $fragment) {
+            $text = $fragment['text'] ?? '';
+
+            if ($text === '') {
+                continue;
+            }
+
+            $style = is_array($fragment['style'] ?? null) ? $fragment['style'] : $this->defaultMinecraftStyle();
+            $escaped = nl2br(htmlspecialchars($text, ENT_QUOTES, 'UTF-8'), false);
+            $css = [];
+
+            if ($style['color'] !== null) {
+                $css[] = 'color: '.$style['color'];
+            }
+
+            if ($style['bold']) {
+                $css[] = 'font-weight: 700';
+            }
+
+            if ($style['italic']) {
+                $css[] = 'font-style: italic';
+            }
+
+            $decorations = [];
+
+            if ($style['underlined']) {
+                $decorations[] = 'underline';
+            }
+
+            if ($style['strikethrough']) {
+                $decorations[] = 'line-through';
+            }
+
+            if ($decorations !== []) {
+                $css[] = 'text-decoration: '.implode(' ', $decorations);
+            }
+
+            if ($style['obfuscated']) {
+                $css[] = 'filter: blur(0.08em)';
+            }
+
+            if ($css === []) {
+                $html .= $escaped;
+                continue;
+            }
+
+            $html .= sprintf(
+                '<span style="%s">%s</span>',
+                htmlspecialchars(implode('; ', $css), ENT_QUOTES, 'UTF-8'),
+                $escaped
+            );
+        }
+
+        return $html;
+    }
+
+    protected function resolveMinecraftColor(string $color): ?string
+    {
+        if (preg_match('/^#[0-9a-f]{6}$/i', $color) === 1) {
+            return strtoupper($color);
+        }
+
+        $colors = [
+            'black' => '#000000',
+            'dark_blue' => '#0000AA',
+            'dark_green' => '#00AA00',
+            'dark_aqua' => '#00AAAA',
+            'dark_red' => '#AA0000',
+            'dark_purple' => '#AA00AA',
+            'gold' => '#FFAA00',
+            'gray' => '#AAAAAA',
+            'dark_gray' => '#555555',
+            'blue' => '#5555FF',
+            'green' => '#55FF55',
+            'aqua' => '#55FFFF',
+            'red' => '#FF5555',
+            'light_purple' => '#FF55FF',
+            'yellow' => '#FFFF55',
+            'white' => '#FFFFFF',
+        ];
+
+        return $colors[strtolower($color)] ?? null;
+    }
+
+    protected function minecraftColorMap(): array
+    {
+        return [
+            '0' => '#000000',
+            '1' => '#0000AA',
+            '2' => '#00AA00',
+            '3' => '#00AAAA',
+            '4' => '#AA0000',
+            '5' => '#AA00AA',
+            '6' => '#FFAA00',
+            '7' => '#AAAAAA',
+            '8' => '#555555',
+            '9' => '#5555FF',
+            'a' => '#55FF55',
+            'b' => '#55FFFF',
+            'c' => '#FF5555',
+            'd' => '#FF55FF',
+            'e' => '#FFFF55',
+            'f' => '#FFFFFF',
+        ];
+    }
+
+    protected function defaultMinecraftStyle(): array
+    {
+        return [
+            'color' => null,
+            'bold' => false,
+            'italic' => false,
+            'underlined' => false,
+            'strikethrough' => false,
+            'obfuscated' => false,
+        ];
     }
 
     protected function normalizeFavicon(array $info): ?string

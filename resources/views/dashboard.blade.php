@@ -15,9 +15,9 @@
                         {{ $serverStatus['query_available'] ? 'Query 可用' : '仅 Ping' }}
                     </span>
                 </div>
-                <h1 class="text-3xl font-bold text-[#55FF55]">
-                    {{ $serverStatus['display_name'] }}
-                </h1>
+                <div class="text-3xl leading-tight tracking-tight [&_span]:align-middle">
+                    {!! $serverStatus['motd_html'] !!}
+                </div>
                 <h2 class="text-[#AAAAAA]">{{ $serverStatus['display_subtitle'] }}</h2>
             </div>
         </div>

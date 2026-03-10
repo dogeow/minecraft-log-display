@@ -21,7 +21,15 @@ class MinecraftServerStatusTest extends TestCase
                 'info' => [
                     'version' => ['name' => '1.21.4'],
                     'players' => ['online' => 2, 'max' => 20],
-                    'description' => ['text' => 'Welcome'],
+                    'description' => [
+                        'text' => '',
+                        'extra' => [
+                            ['text' => '4B ', 'color' => 'gray', 'bold' => true],
+                            ['text' => '欢迎来玩⛏', 'color' => 'gold'],
+                            ['text' => "\n"],
+                            ['text' => '4T QQ群162436048', 'color' => 'light_purple'],
+                        ],
+                    ],
                     'favicon' => "data:image/png;base64,abc\n",
                 ],
                 'error' => null,
@@ -46,7 +54,7 @@ class MinecraftServerStatusTest extends TestCase
 
         $this->assertTrue($status['is_online']);
         $this->assertTrue($status['query_available']);
-        $this->assertSame('Welcome', $status['display_name']);
+        $this->assertSame("4B 欢迎来玩⛏\n4T QQ群162436048", $status['display_name']);
         $this->assertSame('服务器在线', $status['display_subtitle']);
         $this->assertSame('Mod 服务器', $status['server_flavor']);
         $this->assertSame('多人游戏', $status['game_mode']);
@@ -55,6 +63,10 @@ class MinecraftServerStatusTest extends TestCase
         $this->assertSame(['Alex', 'Steve'], $status['players']);
         $this->assertSame('data:image/png;base64,abc', $status['favicon']);
         $this->assertSame([], $status['errors']);
+        $this->assertStringContainsString('<br>', $status['motd_html']);
+        $this->assertStringContainsString('color: #AAAAAA', $status['motd_html']);
+        $this->assertStringContainsString('font-weight: 700', $status['motd_html']);
+        $this->assertStringContainsString('color: #FF55FF', $status['motd_html']);
     }
 
     public function test_it_falls_back_to_ping_data_when_query_is_unavailable(): void
@@ -98,6 +110,7 @@ class MinecraftServerStatusTest extends TestCase
         $this->assertSame(0, $status['online_players']);
         $this->assertSame(10, $status['max_players']);
         $this->assertSame(['服务器 Query 不可用'], $status['errors']);
+        $this->assertSame('Welcome Builders', $status['display_name']);
     }
 
     public function test_it_strips_legacy_formatting_codes_from_ping_description(): void
@@ -112,7 +125,7 @@ class MinecraftServerStatusTest extends TestCase
         $service = new FakeMinecraftServerStatus(
             [
                 'info' => [
-                    'description' => '§7§l4B§r§l 正确服务器名',
+                    'description' => "§7§l4B§r §6☻欢迎来玩⛏§r，记得先入群加白名单哦O_o\n§7§l4T§5 QQ群§d162436048",
                 ],
                 'error' => null,
             ],
@@ -127,8 +140,43 @@ class MinecraftServerStatusTest extends TestCase
 
         $status = $service->getServerStatus();
 
-        $this->assertSame('4B 正确服务器名', $status['display_name']);
+        $this->assertSame("4B ☻欢迎来玩⛏，记得先入群加白名单哦O_o\n4T QQ群162436048", $status['display_name']);
         $this->assertSame('服务器在线', $status['display_subtitle']);
+        $this->assertStringContainsString('<br>', $status['motd_html']);
+        $this->assertStringContainsString('color: #AAAAAA', $status['motd_html']);
+        $this->assertStringContainsString('color: #FFAA00', $status['motd_html']);
+        $this->assertStringContainsString('color: #FF55FF', $status['motd_html']);
+    }
+
+    public function test_it_uses_query_hostname_when_ping_description_is_missing(): void
+    {
+        config([
+            'minecraft.server.ip' => 'mc.example.com',
+            'minecraft.server.port' => 25565,
+            'minecraft.server.query_port' => 25565,
+            'minecraft.server.timeout' => 1,
+        ]);
+
+        $service = new FakeMinecraftServerStatus(
+            [
+                'info' => [],
+                'error' => null,
+            ],
+            [
+                'info' => [
+                    'HostName' => "§a第一行\f§b第二行",
+                ],
+                'players' => [],
+                'error' => null,
+            ]
+        );
+
+        $status = $service->getServerStatus();
+
+        $this->assertSame("第一行\n第二行", $status['display_name']);
+        $this->assertStringContainsString('<br>', $status['motd_html']);
+        $this->assertStringContainsString('color: #55FF55', $status['motd_html']);
+        $this->assertStringContainsString('color: #55FFFF', $status['motd_html']);
     }
 }
 

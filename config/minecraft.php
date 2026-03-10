@@ -14,6 +14,6 @@ return [
         'ip' => env('MINECRAFT_SERVER_IP', '127.0.0.1'),
         'port' => env('MINECRAFT_SERVER_PORT', 25565),
         'query_port' => env('MINECRAFT_SERVER_QUERY_PORT', 25565),
-        'timeout' => 1,
+        'timeout' => (float) env('MINECRAFT_SERVER_TIMEOUT', 1),
     ],
-]; 
+];

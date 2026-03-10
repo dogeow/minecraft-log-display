@@ -11,11 +11,10 @@ use App\Services\MinecraftServerStatus;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(MinecraftServerStatus $mcStatus)
     {
-        $mcStatus = new MinecraftServerStatus();
         $serverStatus = $mcStatus->getServerStatus();
-        
+
         return view('dashboard', compact('serverStatus'));
     }
 

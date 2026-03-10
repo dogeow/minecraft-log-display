@@ -83,7 +83,9 @@ class MinecraftServerStatus
         $info = is_array($pingResult['info'] ?? null) ? $pingResult['info'] : [];
         $queryInfo = is_array($queryResult['info'] ?? null) ? $queryResult['info'] : [];
         $players = is_array($queryResult['players'] ?? null) ? array_values($queryResult['players']) : [];
-        $description = $this->minecraftDescriptionToText($info['description'] ?? null);
+        $description = $this->normalizeMinecraftText(
+            $this->minecraftDescriptionToText($info['description'] ?? null)
+        );
         $queryAvailable = ($queryResult['error'] ?? null) === null;
 
         $normalizedQueryInfo = array_merge([
@@ -109,9 +111,12 @@ class MinecraftServerStatus
             $normalizedQueryInfo['MaxPlayers'] = (int) $info['players']['max'];
         }
 
-        $displaySubtitle = $normalizedQueryInfo['HostName'] !== '未知'
-            ? (string) $normalizedQueryInfo['HostName']
-            : ($description !== '' ? $description : (($pingResult['error'] ?? null) === null ? '服务器在线' : '服务器离线或不可访问'));
+        $hostName = $normalizedQueryInfo['HostName'] !== '未知'
+            ? $this->normalizeMinecraftText((string) $normalizedQueryInfo['HostName'])
+            : '';
+        $statusText = ($pingResult['error'] ?? null) === null ? '服务器在线' : '服务器离线或不可访问';
+        $displayName = $description !== '' ? $description : ($hostName !== '' ? $hostName : 'Minecraft 服务器');
+        $displaySubtitle = $description !== '' ? $statusText : ($hostName !== '' ? $statusText : $statusText);
 
         return [
             'info' => $info,
@@ -126,9 +131,7 @@ class MinecraftServerStatus
                 $pingResult['error'] ?? null,
                 $queryResult['error'] ?? null,
             ])),
-            'display_name' => $normalizedQueryInfo['GameName'] !== '未知'
-                ? (string) $normalizedQueryInfo['GameName']
-                : 'Minecraft 服务器',
+            'display_name' => $displayName,
             'display_subtitle' => $displaySubtitle,
             'version' => (string) $normalizedQueryInfo['Version'],
             'server_flavor' => empty($normalizedQueryInfo['Plugins']) ? '原版服务器' : 'Mod 服务器',
@@ -173,6 +176,15 @@ class MinecraftServerStatus
         }
 
         return trim(preg_replace('/\s+/', ' ', implode('', $parts)) ?? '');
+    }
+
+    protected function normalizeMinecraftText(string $text): string
+    {
+        $text = preg_replace('/(?:§[0-9A-FK-ORX])/iu', '', $text) ?? $text;
+        $text = preg_replace('/[\x00-\x1F\x7F]/u', '', $text) ?? $text;
+        $text = preg_replace('/\s+/u', ' ', $text) ?? $text;
+
+        return trim($text);
     }
 
     protected function normalizeFavicon(array $info): ?string

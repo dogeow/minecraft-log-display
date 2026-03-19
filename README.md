@@ -1,66 +1,93 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Minecraft Log Display
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Minecraft 服务器日志分析与展示系统，基于 Laravel 构建。
 
-## About Laravel
+## 功能特性
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **玩家登录追踪** - 记录玩家登录/登出时间、在线时长
+- **聊天记录** - 存储和展示服务器聊天消息
+- **登录位置** - 记录玩家登录时的 IP 地址和坐标位置
+- **每日统计** - 统计每日玩家在线时长
+- **服务器状态** - 实时检查 Minecraft 服务器在线状态
+- **日志解析** - 自动解析 Minecraft 服务器日志文件
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 技术栈
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **后端**: Laravel 12, PHP 8.4
+- **前端**: Blade 模板 + Tailwind CSS
+- **数据库**: MySQL
 
-## Learning Laravel
+## 项目结构
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```text
+minecraft-log-display/
+├── app/
+│   ├── Console/Commands/     # Artisan 命令
+│   ├── Http/Controllers/    # 控制器
+│   ├── Models/             # Eloquent 模型
+│   └── Services/           # 业务逻辑服务
+├── config/                 # 配置文件
+├── database/
+│   ├── migrations/         # 数据库迁移
+│   ├── seeders/           # 数据填充
+│   └── factories/          # 模型工厂
+├── resources/views/        # Blade 模板
+└── routes/                # 路由定义
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## 核心模型
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- `User` - 玩家用户
+- `Login` - 登录记录
+- `ChatMessage` - 聊天消息
+- `LoginLocation` - 登录位置信息
+- `DailyStat` - 每日统计数据
 
-## Laravel Sponsors
+## 主要路由
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+| 路径 | 描述 |
+| :--- | :--- |
+| `/` | 仪表盘首页 |
+| `/ping` | 服务器健康检查 |
+| `/users` | 用户列表 |
+| `/daily-stats` | 每日统计 |
+| `/logins` | 登录记录 |
+| `/chat` | 聊天记录 |
+| `/login-locations` | 登录位置 |
+| `/login` | 管理员登录 |
 
-### Premium Partners
+## Artisan 命令
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+```bash
+# 处理 Minecraft 日志
+php artisan minecraft:process-logs
 
-## Contributing
+# 导入历史日志
+php artisan minecraft:import-history
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# 清理日志缓存
+php artisan minecraft:trim-cache
+```
 
-## Code of Conduct
+## 配置
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+在 `.env` 文件中配置以下参数：
 
-## Security Vulnerabilities
+```
+MINECRAFT_LOG_PATH=/path/to/minecraft/server/logs
+MINECRAFT_SERVER_HOST=localhost
+MINECRAFT_SERVER_PORT=25565
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## 开发
 
-## License
+```bash
+# 安装依赖
+composer install
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# 运行迁移
+php artisan migrate
+
+# 启动开发服务器
+php artisan serve
+```

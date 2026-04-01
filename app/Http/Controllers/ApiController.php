@@ -14,8 +14,8 @@ use App\Models\User;
 use App\Services\MinecraftServerStatus;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
-
 class ApiController extends Controller
 {
     public function serverStatus(MinecraftServerStatus $mcStatus): JsonResponse
@@ -68,9 +68,14 @@ class ApiController extends Controller
         }
 
         $dailyStats = $query->paginate(10);
+        $data = DailyStatResource::collection($dailyStats->items());
 
         return response()->json([
-            'paginatedData' => DailyStatResource::collection($dailyStats)->response()->getData(),
+            'paginatedData' => [
+                'data' => json_decode(json_encode($data), true),
+                'links' => $dailyStats->linkCollection()->toArray(),
+                'meta' => Arr::except($dailyStats->toArray(), 'data'),
+            ],
             'isAdmin' => Auth::check() && Auth::user()->is_admin,
         ]);
     }
@@ -88,9 +93,14 @@ class ApiController extends Controller
         }
 
         $logins = $query->paginate(10);
+        $data = LoginResource::collection($logins->items());
 
         return response()->json([
-            'paginatedData' => LoginResource::collection($logins)->response()->getData(),
+            'paginatedData' => [
+                'data' => json_decode(json_encode($data), true),
+                'links' => $logins->linkCollection()->toArray(),
+                'meta' => Arr::except($logins->toArray(), 'data'),
+            ],
             'isAdmin' => Auth::check() && Auth::user()->is_admin,
         ]);
     }
@@ -107,9 +117,14 @@ class ApiController extends Controller
         }
 
         $chatMessages = $query->paginate(8);
+        $data = ChatMessageResource::collection($chatMessages->items());
 
         return response()->json([
-            'paginatedData' => ChatMessageResource::collection($chatMessages)->response()->getData(),
+            'paginatedData' => [
+                'data' => json_decode(json_encode($data), true),
+                'links' => $chatMessages->linkCollection()->toArray(),
+                'meta' => Arr::except($chatMessages->toArray(), 'data'),
+            ],
             'isAdmin' => Auth::check() && Auth::user()->is_admin,
         ]);
     }
@@ -127,9 +142,14 @@ class ApiController extends Controller
         }
 
         $locations = $query->paginate(10);
+        $data = LoginLocationResource::collection($locations->items());
 
         return response()->json([
-            'paginatedData' => LoginLocationResource::collection($locations)->response()->getData(),
+            'paginatedData' => [
+                'data' => json_decode(json_encode($data), true),
+                'links' => $locations->linkCollection()->toArray(),
+                'meta' => Arr::except($locations->toArray(), 'data'),
+            ],
             'isAdmin' => Auth::check() && Auth::user()->is_admin,
         ]);
     }

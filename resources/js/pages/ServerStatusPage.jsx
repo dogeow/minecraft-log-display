@@ -238,17 +238,15 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
                     )}
                 </div>
 
-                {serverStatus.players?.length > 0 && (
-                    <div
-                        className="fixed start-0 end-0 bottom-0 h-12 z-[100]"
-                        style={{
-                            backgroundImage:
-                                "url('/images/minecraft_grass_block_texture.jpg')",
-                            backgroundSize: "auto 3rem",
-                            backgroundRepeat: "repeat-x",
-                        }}
-                    />
-                )}
+                <div
+                    className="fixed start-0 end-0 bottom-0 h-12 z-[100]"
+                    style={{
+                        backgroundImage:
+                            "url('/images/minecraft_grass_block_texture.jpg')",
+                        backgroundSize: "auto 3rem",
+                        backgroundRepeat: "repeat-x",
+                    }}
+                />
                 {serverStatus.players?.length > 0 && (
                     <div className="fixed start-0 end-0 bottom-12 flex items-center justify-center z-[100]">
                         {serverStatus.players?.map((player) => (

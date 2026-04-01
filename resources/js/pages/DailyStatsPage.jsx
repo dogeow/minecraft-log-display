@@ -1,12 +1,8 @@
 import { Link, useSearchParams } from "react-router-dom";
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardContent,
-} from "../components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
+import Pagination from "../components/Pagination";
 
 export default function DailyStatsPage({ dailyStats }) {
     if (!dailyStats) return null;
@@ -112,29 +108,6 @@ export default function DailyStatsPage({ dailyStats }) {
                     </div>
                 </CardContent>
             </Card>
-        </div>
-    );
-}
-
-function Pagination({ items, searchParams }) {
-    const buildUrl = (page) => {
-        const params = new URLSearchParams(searchParams);
-        params.set("page", page);
-        return `?${params.toString()}`;
-    };
-
-    return (
-        <div className="mt-4 overflow-x-auto">
-            <div className="flex justify-center gap-1 min-w-max">
-                {items.links.map((link, i) => (
-                    <Link
-                        key={i}
-                        to={buildUrl(link.page)}
-                        dangerouslySetInnerHTML={{ __html: link.label }}
-                        className={`px-2 py-1 text-xs rounded ${link.active ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-muted"}`}
-                    />
-                ))}
-            </div>
         </div>
     );
 }

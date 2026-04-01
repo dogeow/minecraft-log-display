@@ -17,6 +17,7 @@ export default function UsersPage({ users }) {
     const search = searchParams.get("search") || "";
     const sort = searchParams.get("sort") || "";
     const direction = searchParams.get("direction") || "asc";
+
     const handleSort = (field) => {
         const newDir = sort === field && direction === "asc" ? "desc" : "asc";
         const params = new URLSearchParams(searchParams);
@@ -36,7 +37,9 @@ export default function UsersPage({ users }) {
             className="flex items-center hover:underline"
         >
             {children}
-            {sortIcon(field) && <span className="ml-1">{sortIcon(field)}</span>}
+            {sortIcon(field) && (
+                <span className="ml-1">{sortIcon(field)}</span>
+            )}
         </button>
     );
 
@@ -55,9 +58,7 @@ export default function UsersPage({ users }) {
                             name="search"
                             value={search}
                             onChange={(e) => {
-                                const params = new URLSearchParams(
-                                    searchParams,
-                                );
+                                const params = new URLSearchParams(searchParams);
                                 if (e.target.value) {
                                     params.set("search", e.target.value);
                                 } else {
@@ -140,7 +141,10 @@ export default function UsersPage({ users }) {
                             </div>
                         ))}
 
-                        <Pagination users={users} searchParams={searchParams} />
+                        <Pagination
+                            items={users}
+                            searchParams={searchParams}
+                        />
                     </div>
 
                     {/* Desktop table */}
@@ -227,33 +231,13 @@ export default function UsersPage({ users }) {
                                 </tbody>
                             </table>
                         </div>
-                        <Pagination users={users} searchParams={searchParams} />
+                        <Pagination
+                            items={users}
+                            searchParams={searchParams}
+                        />
                     </div>
                 </CardContent>
             </Card>
-        </div>
-    );
-}
-
-function Pagination({ users, searchParams }) {
-    const buildUrl = (page) => {
-        const params = new URLSearchParams(searchParams);
-        params.set("page", page);
-        return `?${params.toString()}`;
-    };
-
-    return (
-        <div className="mt-4 overflow-x-auto">
-            <div className="flex justify-center gap-1 min-w-max">
-                {users.links.map((link, i) => (
-                    <Link
-                        key={i}
-                        to={buildUrl(link.page)}
-                        dangerouslySetInnerHTML={{ __html: link.label }}
-                        className={`px-2 py-1 text-xs rounded ${link.active ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-muted"}`}
-                    />
-                ))}
-            </div>
         </div>
     );
 }

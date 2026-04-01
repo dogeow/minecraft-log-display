@@ -8,6 +8,7 @@ import {
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
+import Pagination from "../components/Pagination";
 
 export default function UsersPage({ users }) {
     if (!users) return null;
@@ -85,15 +86,22 @@ export default function UsersPage({ users }) {
                                 key={user.id}
                                 className={`rounded-lg border p-4 ${user.is_online ? "border-l-4 border-l-green-500" : ""}`}
                             >
-                                <div className="flex items-center gap-3 mb-3">
+                                <div className="flex items-center gap-3 mb-2">
                                     <img
                                         src={`https://crafthead.net/avatar/${user.username}`}
                                         alt={user.username}
                                         className="w-10 h-10 rounded-sm"
                                     />
-                                    <div>
-                                        <div className="font-semibold">
-                                            {user.username}
+                                    <div className="flex items-center justify-between flex-1 min-w-0">
+                                        <div className="flex items-center gap-1 min-w-0">
+                                            <span className="font-semibold truncate">
+                                                {user.username}
+                                            </span>
+                                            {user.is_scientist && (
+                                                <Badge variant="default">
+                                                    科学家
+                                                </Badge>
+                                            )}
                                         </div>
                                         <Badge
                                             variant={
@@ -128,13 +136,6 @@ export default function UsersPage({ users }) {
                                             )}
                                         </span>
                                     </div>
-                                    {user.is_scientist && (
-                                        <div className="flex justify-end">
-                                            <Badge variant="default">
-                                                科学家
-                                            </Badge>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         ))}

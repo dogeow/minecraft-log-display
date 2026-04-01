@@ -73,7 +73,7 @@ php artisan minecraft:trim-cache
 
 在 `.env` 文件中配置以下参数：
 
-```
+```plain
 MINECRAFT_LOG_PATH=/path/to/minecraft/server/logs
 MINECRAFT_SERVER_HOST=localhost
 MINECRAFT_SERVER_PORT=25565

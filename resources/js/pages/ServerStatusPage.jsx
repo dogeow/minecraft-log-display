@@ -52,19 +52,19 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
         <>
             {/* Gradient sky background - below nav */}
             <div
-                className="fixed start-0 end-0 top-[60px] bottom-0 z-0"
+                className="fixed start-0 end-0 top-[60px] bottom-0 z-20"
                 style={{
                     background:
                         "linear-gradient(to bottom, #87CEEB 0%, #FFFFFF 100%)",
                 }}
             />
             {/* Sun */}
-            <div className="fixed top-4 right-20 w-14 h-14 rounded-full bg-[#FFD700] shadow-[0_0_40px_15px_rgba(255,215,0,0.4)] z-10" />
+            <div className="fixed top-4 right-20 w-14 h-14 rounded-full bg-[#FFD700] shadow-[0_0_40px_15px_rgba(255,215,0,0.4)] z-20" />
             {/* Clouds */}
-            <div className="fixed top-12 left-[10%] w-28 h-9 bg-white/90 rounded-full blur-[1px] z-10" />
-            <div className="fixed top-20 left-[50%] w-24 h-7 bg-white/80 rounded-full blur-[1px] z-10" />
-            <div className="fixed top-8 left-[75%] w-20 h-6 bg-white/85 rounded-full blur-[1px] z-10" />
-            <div className="fixed top-28 left-[30%] w-16 h-5 bg-white/70 rounded-full blur-[1px] z-10" />
+            <div className="fixed top-12 left-[10%] w-28 h-9 bg-white/90 rounded-full blur-[1px] z-20" />
+            <div className="fixed top-20 left-[50%] w-24 h-7 bg-white/80 rounded-full blur-[1px] z-20" />
+            <div className="fixed top-8 left-[75%] w-20 h-6 bg-white/85 rounded-full blur-[1px] z-20" />
+            <div className="fixed top-28 left-[30%] w-16 h-5 bg-white/70 rounded-full blur-[1px] z-20" />
         </>
     );
 
@@ -86,7 +86,7 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
             ].map((pos, i) => (
                 <div
                     key={`star-${i}`}
-                    className={`fixed ${pos} w-0.5 h-0.5 rounded-full bg-white animate-pulse z-10`}
+                    className={`fixed ${pos} w-0.5 h-0.5 rounded-full bg-white animate-pulse z-20`}
                     style={{
                         animationDelay: `${i * 0.3}s`,
                         opacity: 0.7 + (i % 3) * 0.1,
@@ -94,14 +94,14 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
                 />
             ))}
             {/* Moon */}
-            <div className="fixed top-6 right-16 w-12 h-12 rounded-full bg-[#F4F1C9] shadow-[0_0_30px_10px_rgba(244,241,201,0.3)] z-10">
+            <div className="fixed top-6 right-16 w-12 h-12 rounded-full bg-[#F4F1C9] shadow-[0_0_30px_10px_rgba(244,241,201,0.3)] z-20">
                 <div className="absolute top-1 right-1 w-3 h-3 rounded-full bg-[#D4D1A0] opacity-60" />
                 <div className="absolute top-4 left-2 w-2 h-2 rounded-full bg-[#D4D1A0] opacity-50" />
             </div>
             {/* Clouds */}
-            <div className="fixed top-16 left-[15%] w-24 h-8 bg-white/20 rounded-full blur-[2px] z-10" />
-            <div className="fixed top-24 left-[60%] w-20 h-6 bg-white/15 rounded-full blur-[2px] z-10" />
-            <div className="fixed top-10 left-[40%] w-16 h-5 bg-white/10 rounded-full blur-[2px] z-10" />
+            <div className="fixed top-16 left-[15%] w-24 h-8 bg-white/20 rounded-full blur-[2px] z-20" />
+            <div className="fixed top-24 left-[60%] w-20 h-6 bg-white/15 rounded-full blur-[2px] z-20" />
+            <div className="fixed top-10 left-[40%] w-16 h-5 bg-white/10 rounded-full blur-[2px] z-20" />
         </>
     );
 
@@ -111,7 +111,7 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
             {nightSky}
             <div className="relative container mx-auto p-2">
                 <div
-                    className={`relative z-20 mx-auto max-w-3xl ${!isDark ? "bg-white/80 rounded-xl shadow-lg" : ""}`}
+                    className={`mx-auto max-w-3xl ${!isDark ? "bg-white/80 rounded-xl shadow-lg" : ""}`}
                 >
                     <Card
                         className={`overflow-hidden rounded-t-xl rounded-b-none border-b-0 ${!isDark ? "bg-white/95" : ""}`}

@@ -47,27 +47,6 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
     const textPrimary = isDark ? "text-[#FFAA00]" : "text-yellow-600";
     const textMuted = isDark ? "text-[#AAAAAA]" : "text-gray-500";
 
-    // Day sky elements (sun, clouds, gradient)
-    const daySky = !isDark && (
-        <>
-            {/* Gradient sky background - below nav */}
-            <div
-                className="fixed start-0 end-0 top-[60px] bottom-0 -z-10"
-                style={{
-                    background:
-                        "linear-gradient(to bottom, #87CEEB 0%, #FFFFFF 100%)",
-                }}
-            />
-            {/* Sun */}
-            <div className="fixed top-4 right-20 w-14 h-14 rounded-full bg-[#FFD700] shadow-[0_0_40px_15px_rgba(255,215,0,0.4)] -z-10" />
-            {/* Clouds */}
-            <div className="fixed top-12 left-[10%] w-28 h-9 bg-white/90 rounded-full blur-[1px] -z-10" />
-            <div className="fixed top-20 left-[50%] w-24 h-7 bg-white/80 rounded-full blur-[1px] -z-10" />
-            <div className="fixed top-8 left-[75%] w-20 h-6 bg-white/85 rounded-full blur-[1px] -z-10" />
-            <div className="fixed top-28 left-[30%] w-16 h-5 bg-white/70 rounded-full blur-[1px] -z-10" />
-        </>
-    );
-
     // Night sky elements (stars, moon, clouds)
     const nightSky = isDark && (
         <>
@@ -107,8 +86,6 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
 
     return (
         <>
-            {daySky}
-            {nightSky}
             <div className="relative container mx-auto p-2">
                 <div
                     className={`relative mx-auto max-w-3xl ${!isDark ? "bg-white/80 rounded-xl shadow-lg" : ""}`}
@@ -193,6 +170,17 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
                         </div>
                     </Card>
                 </div>
+
+                {/* Sun and clouds below server card */}
+                {!isDark && (
+                    <div className="relative mx-auto max-w-3xl h-24 mt-4">
+                        <div className="absolute top-0 right-8 w-14 h-14 rounded-full bg-[#FFD700] shadow-[0_0_40px_15px_rgba(255,215,0,0.4)]" />
+                        <div className="absolute top-6 left-[10%] w-28 h-9 bg-white/90 rounded-full blur-[1px]" />
+                        <div className="absolute top-10 left-[50%] w-24 h-7 bg-white/80 rounded-full blur-[1px]" />
+                        <div className="absolute top-2 left-[75%] w-20 h-6 bg-white/85 rounded-full blur-[1px]" />
+                        <div className="absolute top-14 left-[30%] w-16 h-5 bg-white/70 rounded-full blur-[1px]" />
+                    </div>
+                )}
 
                 {serverStatus.errors?.length > 0 && (
                     <div className="mx-auto mt-6 max-w-3xl space-y-3">

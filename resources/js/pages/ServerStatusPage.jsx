@@ -55,7 +55,7 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
                 className="fixed inset-0 z-0"
                 style={{
                     background:
-                        "linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 60%, #98D8AA 100%)",
+                        "linear-gradient(to bottom, #87CEEB 0%, #FFFFFF 100%)",
                 }}
             />
             {/* Sun */}

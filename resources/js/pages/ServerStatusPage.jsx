@@ -169,12 +169,12 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
             </div>
 
             <div
-                className="relative"
+                className="relative z-[60]"
                 style={{ borderBottom: "3rem solid transparent" }}
             >
                 {serverStatus.players?.length > 0 && (
                     <div
-                        className="fixed start-0 end-0 bottom-0 h-12 z-50"
+                        className="fixed start-0 end-0 bottom-0 h-12 z-30"
                         style={{
                             backgroundImage:
                                 "url('/images/minecraft_grass_block_texture.jpg')",

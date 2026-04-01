@@ -1,5 +1,10 @@
 import { Link, useSearchParams } from "react-router-dom";
-import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardContent,
+} from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 
@@ -24,7 +29,9 @@ export default function DailyStatsPage({ dailyStats }) {
                             name="search"
                             value={search}
                             onChange={(e) => {
-                                const params = new URLSearchParams(searchParams);
+                                const params = new URLSearchParams(
+                                    searchParams,
+                                );
                                 if (e.target.value)
                                     params.set("search", e.target.value);
                                 else params.delete("search");
@@ -48,9 +55,15 @@ export default function DailyStatsPage({ dailyStats }) {
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b bg-muted/50">
-                                    <th className="px-4 py-2 text-left font-semibold">用户</th>
-                                    <th className="px-4 py-2 text-left font-semibold">日期</th>
-                                    <th className="px-4 py-2 text-left font-semibold">在线时长(秒)</th>
+                                    <th className="px-4 py-2 text-left font-semibold">
+                                        用户
+                                    </th>
+                                    <th className="px-4 py-2 text-left font-semibold">
+                                        日期
+                                    </th>
+                                    <th className="px-4 py-2 text-left font-semibold">
+                                        在线时长(秒)
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -65,7 +78,10 @@ export default function DailyStatsPage({ dailyStats }) {
                                     </tr>
                                 ) : (
                                     dailyStats.data.map((stat) => (
-                                        <tr key={stat.id} className="border-b last:border-0">
+                                        <tr
+                                            key={stat.id}
+                                            className="border-b last:border-0"
+                                        >
                                             <td className="px-4 py-2">
                                                 <div className="flex items-center gap-2">
                                                     <img
@@ -108,15 +124,17 @@ function Pagination({ items, searchParams }) {
     };
 
     return (
-        <div className="mt-4 flex justify-center gap-1">
-            {items.links.map((link, i) => (
-                <Link
-                    key={i}
-                    to={buildUrl(link.page)}
-                    dangerouslySetInnerHTML={{ __html: link.label }}
-                    className={`px-3 py-1 rounded ${link.active ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-muted"}`}
-                />
-            ))}
+        <div className="mt-4 overflow-x-auto">
+            <div className="flex justify-center gap-1 min-w-max">
+                {items.links.map((link, i) => (
+                    <Link
+                        key={i}
+                        to={buildUrl(link.page)}
+                        dangerouslySetInnerHTML={{ __html: link.label }}
+                        className={`px-2 py-1 text-xs rounded ${link.active ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-muted"}`}
+                    />
+                ))}
+            </div>
         </div>
     );
 }

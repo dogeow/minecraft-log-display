@@ -73,6 +73,17 @@ export default function Nav({ isAdmin }) {
                                 key={link.path}
                                 to={link.path}
                                 className={`block mt-4 md:inline-block md:mt-0 ${textColor} ${hoverColor} ${location.pathname === link.path ? "font-semibold" : ""}`}
+                                onClick={() => {
+                                    const menu =
+                                        document.getElementById("menu");
+                                    const menuIcon =
+                                        document.getElementById("menuIcon");
+                                    const closeIcon =
+                                        document.getElementById("closeIcon");
+                                    menu.classList.add("hidden");
+                                    menuIcon.classList.remove("hidden");
+                                    closeIcon.classList.add("hidden");
+                                }}
                             >
                                 {link.label}
                             </Link>

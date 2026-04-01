@@ -242,15 +242,17 @@ function Pagination({ users, searchParams }) {
     };
 
     return (
-        <div className="mt-4 flex justify-center gap-1">
-            {users.links.map((link, i) => (
-                <Link
-                    key={i}
-                    to={buildUrl(link.page)}
-                    dangerouslySetInnerHTML={{ __html: link.label }}
-                    className={`px-3 py-1 rounded ${link.active ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-muted"}`}
-                />
-            ))}
+        <div className="mt-4 overflow-x-auto">
+            <div className="flex justify-center gap-1 min-w-max">
+                {users.links.map((link, i) => (
+                    <Link
+                        key={i}
+                        to={buildUrl(link.page)}
+                        dangerouslySetInnerHTML={{ __html: link.label }}
+                        className={`px-2 py-1 text-xs rounded ${link.active ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-muted"}`}
+                    />
+                ))}
+            </div>
         </div>
     );
 }

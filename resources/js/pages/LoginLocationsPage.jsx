@@ -1,5 +1,10 @@
 import { Link, useSearchParams } from "react-router-dom";
-import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardContent,
+} from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 
@@ -24,7 +29,9 @@ export default function LoginLocationsPage({ locations, isAdmin }) {
                             name="search"
                             value={search}
                             onChange={(e) => {
-                                const params = new URLSearchParams(searchParams);
+                                const params = new URLSearchParams(
+                                    searchParams,
+                                );
                                 if (e.target.value)
                                     params.set("search", e.target.value);
                                 else params.delete("search");
@@ -48,11 +55,21 @@ export default function LoginLocationsPage({ locations, isAdmin }) {
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b bg-muted/50">
-                                    <th className="px-4 py-2 text-left font-semibold">用户</th>
-                                    <th className="px-4 py-2 text-left font-semibold">世界</th>
-                                    <th className="px-4 py-2 text-left font-semibold">坐标</th>
-                                    <th className="px-4 py-2 text-left font-semibold">IP地址</th>
-                                    <th className="px-4 py-2 text-left font-semibold">登录时间</th>
+                                    <th className="px-4 py-2 text-left font-semibold">
+                                        用户
+                                    </th>
+                                    <th className="px-4 py-2 text-left font-semibold">
+                                        世界
+                                    </th>
+                                    <th className="px-4 py-2 text-left font-semibold">
+                                        坐标
+                                    </th>
+                                    <th className="px-4 py-2 text-left font-semibold">
+                                        IP地址
+                                    </th>
+                                    <th className="px-4 py-2 text-left font-semibold">
+                                        登录时间
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -67,12 +84,18 @@ export default function LoginLocationsPage({ locations, isAdmin }) {
                                     </tr>
                                 ) : (
                                     locations.data.map((location) => (
-                                        <tr key={location.id} className="border-b last:border-0">
+                                        <tr
+                                            key={location.id}
+                                            className="border-b last:border-0"
+                                        >
                                             <td className="px-4 py-2">
                                                 <div className="flex items-center gap-2">
                                                     <img
                                                         src={`https://crafthead.net/avatar/${location.user.username}`}
-                                                        alt={location.user.username}
+                                                        alt={
+                                                            location.user
+                                                                .username
+                                                        }
                                                         className="w-6 h-6 rounded-sm"
                                                     />
                                                     <span>
@@ -99,7 +122,10 @@ export default function LoginLocationsPage({ locations, isAdmin }) {
                                 )}
                             </tbody>
                         </table>
-                        <Pagination items={locations} searchParams={searchParams} />
+                        <Pagination
+                            items={locations}
+                            searchParams={searchParams}
+                        />
                     </div>
                 </CardContent>
             </Card>
@@ -115,15 +141,17 @@ function Pagination({ items, searchParams }) {
     };
 
     return (
-        <div className="mt-4 flex justify-center gap-1">
-            {items.links.map((link, i) => (
-                <Link
-                    key={i}
-                    to={buildUrl(link.page)}
-                    dangerouslySetInnerHTML={{ __html: link.label }}
-                    className={`px-3 py-1 rounded ${link.active ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-muted"}`}
-                />
-            ))}
+        <div className="mt-4 overflow-x-auto">
+            <div className="flex justify-center gap-1 min-w-max">
+                {items.links.map((link, i) => (
+                    <Link
+                        key={i}
+                        to={buildUrl(link.page)}
+                        dangerouslySetInnerHTML={{ __html: link.label }}
+                        className={`px-2 py-1 text-xs rounded ${link.active ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-muted"}`}
+                    />
+                ))}
+            </div>
         </div>
     );
 }

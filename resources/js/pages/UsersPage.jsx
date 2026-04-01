@@ -1,9 +1,5 @@
 import { Link, useSearchParams } from "react-router-dom";
 import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardContent,
 } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
@@ -42,14 +38,11 @@ export default function UsersPage({ users }) {
     );
 
     return (
-        <div className="container mx-auto p-4">
-            <Card>
-                <CardHeader>
-                    <div className="flex justify-between items-center">
-                        <CardTitle>用户列表</CardTitle>
-                    </div>
-                </CardHeader>
-                <CardContent>
+        <div className="container mx-auto p-2">
+            <div className="flex justify-between items-center mb-3">
+                <h2 className="text-base font-semibold">用户列表</h2>
+            </div>
+            <div>
                     <form className="flex gap-2 mb-6">
                         <Input
                             type="text"
@@ -227,12 +220,8 @@ export default function UsersPage({ users }) {
                                     ))}
                                 </tbody>
                             </table>
-                        </div>
                         <Pagination items={users} searchParams={searchParams} />
                     </div>
-                </CardContent>
-            </Card>
-        </div>
     );
 }
 

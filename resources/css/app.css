@@ -1,5 +1,81 @@
 @import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
 
 @theme {
-    --font-family-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+    /* shadcn design tokens */
+    --color-background: hsl(0 0% 100%);
+    --color-foreground: hsl(222 47% 11%);
+
+    --color-card: hsl(0 0% 100%);
+    --color-card-foreground: hsl(222 47% 11%);
+
+    --color-popover: hsl(0 0% 100%);
+    --color-popover-foreground: hsl(222 47% 11%);
+
+    --color-primary: hsl(221 83% 53%);
+    --color-primary-foreground: hsl(0 0% 100%);
+
+    --color-secondary: hsl(210 40% 96%);
+    --color-secondary-foreground: hsl(222 47% 11%);
+
+    --color-muted: hsl(210 40% 96%);
+    --color-muted-foreground: hsl(215 16% 47%);
+
+    --color-accent: hsl(210 40% 96%);
+    --color-accent-foreground: hsl(222 47% 11%);
+
+    --color-destructive: hsl(0 84% 60%);
+    --color-destructive-foreground: hsl(0 0% 100%);
+
+    --color-border: hsl(214 32% 91%);
+    --color-input: hsl(214 32% 91%);
+    --color-ring: hsl(221 83% 53%);
+
+    --radius-sm: 0.5rem;
+    --radius-md: 0.625rem;
+    --radius-lg: 0.875rem;
+    --radius-xl: 1rem;
+}
+
+.dark {
+    --color-background: hsl(222 47% 8%);
+    --color-foreground: hsl(210 40% 98%);
+
+    --color-card: hsl(222 47% 11%);
+    --color-card-foreground: hsl(210 40% 98%);
+
+    --color-popover: hsl(222 47% 11%);
+    --color-popover-foreground: hsl(210 40% 98%);
+
+    --color-primary: hsl(217 91% 60%);
+    --color-primary-foreground: hsl(0 0% 100%);
+
+    --color-secondary: hsl(217 33% 17%);
+    --color-secondary-foreground: hsl(210 40% 98%);
+
+    --color-muted: hsl(217 33% 17%);
+    --color-muted-foreground: hsl(215 20% 65%);
+
+    --color-accent: hsl(217 33% 17%);
+    --color-accent-foreground: hsl(210 40% 98%);
+
+    --color-destructive: hsl(0 62% 50%);
+    --color-destructive-foreground: hsl(0 0% 100%);
+
+    --color-border: hsl(217 33% 17%);
+    --color-input: hsl(217 33% 17%);
+    --color-ring: hsl(217 91% 60%);
+}
+
+* {
+    border-color: var(--color-border);
+}
+
+body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
 }

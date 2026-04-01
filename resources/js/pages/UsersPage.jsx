@@ -1,22 +1,21 @@
 import { Link, useSearchParams } from "react-router-dom";
-import { useTheme } from "../contexts/ThemeContext";
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardContent,
+} from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Button } from "../components/ui/button";
+import { Badge } from "../components/ui/badge";
 
 export default function UsersPage({ users }) {
     if (!users) return null;
-    const { theme } = useTheme();
     const [searchParams, setSearchParams] = useSearchParams();
 
     const search = searchParams.get("search") || "";
     const sort = searchParams.get("sort") || "";
     const direction = searchParams.get("direction") || "asc";
-
-    const cardBg = theme === "dark" ? "bg-white/10" : "bg-white";
-    const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
-    const textOnDark = theme === "dark" ? "text-white" : "text-gray-800";
-    const textMuted = theme === "dark" ? "text-gray-300" : "text-gray-600";
-    const inputBg =
-        theme === "dark" ? "bg-white text-gray-900" : "bg-white text-gray-900";
-
     const handleSort = (field) => {
         const newDir = sort === field && direction === "asc" ? "desc" : "asc";
         const params = new URLSearchParams(searchParams);
@@ -30,7 +29,7 @@ export default function UsersPage({ users }) {
         return direction === "asc" ? "↑" : "↓";
     };
 
-    const SortLink = ({ field, children }) => (
+    const SortButton = ({ field, children }) => (
         <button
             onClick={() => handleSort(field)}
             className="flex items-center hover:underline"
@@ -42,183 +41,195 @@ export default function UsersPage({ users }) {
 
     return (
         <div className="container mx-auto p-4">
-            <div className={`${cardBg} backdrop-blur rounded-lg shadow-lg p-6`}>
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className={`text-2xl font-bold ${textOnDark}`}>
-                        用户列表
-                    </h2>
-                </div>
+            <Card>
+                <CardHeader>
+                    <div className="flex justify-between items-center">
+                        <CardTitle>用户列表</CardTitle>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <form className="flex gap-2 mb-6">
+                        <Input
+                            type="text"
+                            name="search"
+                            value={search}
+                            onChange={(e) => {
+                                const params = new URLSearchParams(
+                                    searchParams,
+                                );
+                                if (e.target.value) {
+                                    params.set("search", e.target.value);
+                                } else {
+                                    params.delete("search");
+                                }
+                                setSearchParams(params);
+                            }}
+                            placeholder="搜索用户名..."
+                        />
+                        <Button type="submit" variant="default">
+                            搜索
+                        </Button>
+                        {search && (
+                            <Link to="/users">
+                                <Button type="button" variant="secondary">
+                                    清除
+                                </Button>
+                            </Link>
+                        )}
+                    </form>
 
-                <form className="flex space-x-2 mb-6">
-                    <input
-                        type="text"
-                        name="search"
-                        value={search}
-                        onChange={(e) => {
-                            const params = new URLSearchParams(searchParams);
-                            if (e.target.value) {
-                                params.set("search", e.target.value);
-                            } else {
-                                params.delete("search");
-                            }
-                            setSearchParams(params);
-                        }}
-                        placeholder="搜索用户名..."
-                        className={`px-4 py-2 rounded-lg border ${inputBg} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                    />
-                    <button
-                        type="submit"
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        搜索
-                    </button>
-                    {search && (
-                        <Link
-                            to="/users"
-                            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                        >
-                            清除
-                        </Link>
-                    )}
-                </form>
-
-                {/* Mobile cards */}
-                <div className="md:hidden space-y-4">
-                    {users.data.map((user) => (
-                        <div
-                            key={user.id}
-                            className={`${cardBg} rounded-lg shadow p-4 ${user.is_online ? "border-l-4 border-green-500" : ""}`}
-                        >
-                            <div className="flex items-center space-x-3 mb-3">
-                                <img
-                                    src={`https://crafthead.net/avatar/${user.username}`}
-                                    alt={user.username}
-                                    className="w-10 h-10 rounded-sm"
-                                />
-                                <div>
-                                    <div
-                                        className={`font-semibold ${textOnDark}`}
-                                    >
-                                        {user.username}
+                    {/* Mobile cards */}
+                    <div className="md:hidden space-y-4">
+                        {users.data.map((user) => (
+                            <div
+                                key={user.id}
+                                className={`rounded-lg border p-4 ${user.is_online ? "border-l-4 border-l-green-500" : ""}`}
+                            >
+                                <div className="flex items-center gap-3 mb-3">
+                                    <img
+                                        src={`https://crafthead.net/avatar/${user.username}`}
+                                        alt={user.username}
+                                        className="w-10 h-10 rounded-sm"
+                                    />
+                                    <div>
+                                        <div className="font-semibold">
+                                            {user.username}
+                                        </div>
+                                        <Badge
+                                            variant={
+                                                user.is_online
+                                                    ? "secondary"
+                                                    : "outline"
+                                            }
+                                        >
+                                            {user.is_online ? "在线" : "离线"}
+                                        </Badge>
                                     </div>
-                                    <span
-                                        className={`px-2 py-1 rounded text-sm ${user.is_online ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}
-                                    >
-                                        {user.is_online ? "在线" : "离线"}
-                                    </span>
                                 </div>
-                            </div>
-                            <div className={`space-y-2 text-sm ${textMuted}`}>
-                                <div className="flex justify-between">
-                                    <span>
-                                        {user.is_online
-                                            ? "在线时间"
-                                            : "离线时间"}
-                                        ：
-                                    </span>
-                                    <span>
-                                        {user.is_online
-                                            ? user.last_login_at
-                                            : user.last_logout_at}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span>总在线时长：</span>
-                                    <span>
-                                        {formatDuration(user.total_online_time)}
-                                    </span>
-                                </div>
-                                {user.is_scientist && (
-                                    <div className="flex justify-end">
-                                        <span className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
-                                            科学家
+                                <div className="space-y-2 text-sm text-muted-foreground">
+                                    <div className="flex justify-between">
+                                        <span>
+                                            {user.is_online
+                                                ? "在线时间"
+                                                : "离线时间"}
+                                            ：
                                         </span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-
-                    <Pagination users={users} searchParams={searchParams} />
-                </div>
-
-                {/* Desktop table */}
-                <div className="hidden md:block bg-white rounded-lg shadow p-4">
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full">
-                            <thead>
-                                <tr className="text-left">
-                                    <th className="px-4 py-2">
-                                        <SortLink field="username">
-                                            用户名
-                                        </SortLink>
-                                    </th>
-                                    <th className="px-4 py-2">状态</th>
-                                    <th className="px-4 py-2">
-                                        <SortLink field="last_logout_at">
-                                            离线/登录
-                                        </SortLink>
-                                    </th>
-                                    <th className="px-4 py-2">总在线时长</th>
-                                    <th className="px-4 py-2">
-                                        <SortLink field="is_scientist">
-                                            标记
-                                        </SortLink>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {users.data.map((user) => (
-                                    <tr
-                                        key={user.id}
-                                        className={
-                                            user.is_online ? "bg-green-50" : ""
-                                        }
-                                    >
-                                        <td className="border px-4 py-2">
-                                            <div className="flex items-center space-x-2">
-                                                <img
-                                                    src={`https://crafthead.net/avatar/${user.username}`}
-                                                    alt={user.username}
-                                                    className="w-6 h-6 rounded-sm"
-                                                />
-                                                <span>{user.username}</span>
-                                            </div>
-                                        </td>
-                                        <td className="border px-4 py-2">
-                                            <span
-                                                className={`px-2 py-1 rounded text-sm ${user.is_online ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}
-                                            >
-                                                {user.is_online
-                                                    ? "在线"
-                                                    : "离线"}
-                                            </span>
-                                        </td>
-                                        <td className="border px-4 py-2">
+                                        <span>
                                             {user.is_online
                                                 ? user.last_login_at
                                                 : user.last_logout_at}
-                                        </td>
-                                        <td className="border px-4 py-2">
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span>总在线时长：</span>
+                                        <span>
                                             {formatDuration(
                                                 user.total_online_time,
                                             )}
-                                        </td>
-                                        <td className="border px-4 py-2">
-                                            {user.is_scientist && (
-                                                <span className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
-                                                    科学家
-                                                </span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                        </span>
+                                    </div>
+                                    {user.is_scientist && (
+                                        <div className="flex justify-end">
+                                            <Badge variant="default">
+                                                科学家
+                                            </Badge>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+
+                        <Pagination users={users} searchParams={searchParams} />
                     </div>
-                    <Pagination users={users} searchParams={searchParams} />
-                </div>
-            </div>
+
+                    {/* Desktop table */}
+                    <div className="hidden md:block rounded-md border">
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="border-b bg-muted/50">
+                                        <th className="px-4 py-2 text-left">
+                                            <SortButton field="username">
+                                                用户名
+                                            </SortButton>
+                                        </th>
+                                        <th className="px-4 py-2 text-left">
+                                            状态
+                                        </th>
+                                        <th className="px-4 py-2 text-left">
+                                            <SortButton field="last_logout_at">
+                                                离线/登录
+                                            </SortButton>
+                                        </th>
+                                        <th className="px-4 py-2 text-left">
+                                            总在线时长
+                                        </th>
+                                        <th className="px-4 py-2 text-left">
+                                            <SortButton field="is_scientist">
+                                                标记
+                                            </SortButton>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {users.data.map((user) => (
+                                        <tr
+                                            key={user.id}
+                                            className={
+                                                user.is_online
+                                                    ? "bg-green-500/10"
+                                                    : ""
+                                            }
+                                        >
+                                            <td className="px-4 py-2">
+                                                <div className="flex items-center gap-2">
+                                                    <img
+                                                        src={`https://crafthead.net/avatar/${user.username}`}
+                                                        alt={user.username}
+                                                        className="w-6 h-6 rounded-sm"
+                                                    />
+                                                    <span>{user.username}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-2">
+                                                <Badge
+                                                    variant={
+                                                        user.is_online
+                                                            ? "secondary"
+                                                            : "outline"
+                                                    }
+                                                >
+                                                    {user.is_online
+                                                        ? "在线"
+                                                        : "离线"}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-4 py-2">
+                                                {user.is_online
+                                                    ? user.last_login_at
+                                                    : user.last_logout_at}
+                                            </td>
+                                            <td className="px-4 py-2">
+                                                {formatDuration(
+                                                    user.total_online_time,
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-2">
+                                                {user.is_scientist && (
+                                                    <Badge variant="default">
+                                                        科学家
+                                                    </Badge>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <Pagination users={users} searchParams={searchParams} />
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     );
 }
@@ -231,13 +242,13 @@ function Pagination({ users, searchParams }) {
     };
 
     return (
-        <div className="mt-4 flex justify-center space-x-1">
+        <div className="mt-4 flex justify-center gap-1">
             {users.links.map((link, i) => (
                 <Link
                     key={i}
                     to={buildUrl(link.page)}
                     dangerouslySetInnerHTML={{ __html: link.label }}
-                    className={`px-3 py-1 rounded ${link.active ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+                    className={`px-3 py-1 rounded ${link.active ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-muted"}`}
                 />
             ))}
         </div>

@@ -1,108 +1,101 @@
 import { Link, useSearchParams } from "react-router-dom";
-import { useTheme } from "../contexts/ThemeContext";
+import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Button } from "../components/ui/button";
 
 export default function DailyStatsPage({ dailyStats }) {
     if (!dailyStats) return null;
-    const { theme } = useTheme();
     const [searchParams, setSearchParams] = useSearchParams();
 
     const search = searchParams.get("search") || "";
-    const cardBg = theme === "dark" ? "bg-white/10" : "bg-white";
-    const textOnDark = theme === "dark" ? "text-white" : "text-gray-800";
-    const inputBg =
-        theme === "dark" ? "bg-white text-gray-900" : "bg-white text-gray-900";
 
     return (
         <div className="container mx-auto p-4">
-            <div className={`${cardBg} backdrop-blur rounded-lg shadow-lg p-6`}>
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className={`text-xl font-semibold ${textOnDark}`}>
-                        每日统计
-                    </h3>
-                </div>
+            <Card>
+                <CardHeader>
+                    <div className="flex justify-between items-center">
+                        <CardTitle>每日统计</CardTitle>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <form className="flex gap-2 mb-6">
+                        <Input
+                            type="search"
+                            name="search"
+                            value={search}
+                            onChange={(e) => {
+                                const params = new URLSearchParams(searchParams);
+                                if (e.target.value)
+                                    params.set("search", e.target.value);
+                                else params.delete("search");
+                                setSearchParams(params);
+                            }}
+                            placeholder="搜索用户名..."
+                        />
+                        <Button type="submit" variant="default">
+                            搜索
+                        </Button>
+                        {search && (
+                            <Link to="/daily-stats">
+                                <Button type="button" variant="secondary">
+                                    清除
+                                </Button>
+                            </Link>
+                        )}
+                    </form>
 
-                <form className="flex space-x-2 mb-6">
-                    <input
-                        type="search"
-                        name="search"
-                        value={search}
-                        onChange={(e) => {
-                            const params = new URLSearchParams(searchParams);
-                            if (e.target.value)
-                                params.set("search", e.target.value);
-                            else params.delete("search");
-                            setSearchParams(params);
-                        }}
-                        placeholder="搜索用户名..."
-                        className={`px-4 py-2 rounded-lg border ${inputBg} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                    />
-                    <button
-                        type="submit"
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                    >
-                        搜索
-                    </button>
-                    {search && (
-                        <Link
-                            to="/daily-stats"
-                            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-                        >
-                            清除
-                        </Link>
-                    )}
-                </form>
-
-                <div className="bg-white rounded-lg shadow p-4">
-                    <table className="w-full whitespace-nowrap">
-                        <thead>
-                            <tr className="text-left font-bold">
-                                <th className="px-4 py-2">用户</th>
-                                <th className="px-4 py-2">日期</th>
-                                <th className="px-4 py-2">在线时长(秒)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {dailyStats.data.length === 0 ? (
-                                <tr>
-                                    <td
-                                        colSpan="3"
-                                        className="border px-4 py-2 text-center"
-                                    >
-                                        没有找到记录
-                                    </td>
+                    <div className="rounded-md border">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="border-b bg-muted/50">
+                                    <th className="px-4 py-2 text-left font-semibold">用户</th>
+                                    <th className="px-4 py-2 text-left font-semibold">日期</th>
+                                    <th className="px-4 py-2 text-left font-semibold">在线时长(秒)</th>
                                 </tr>
-                            ) : (
-                                dailyStats.data.map((stat) => (
-                                    <tr key={stat.id}>
-                                        <td className="border px-4 py-2">
-                                            <div className="flex items-center space-x-2">
-                                                <img
-                                                    src={`https://crafthead.net/avatar/${stat.user.username}`}
-                                                    alt={stat.user.username}
-                                                    className="w-6 h-6 rounded-sm"
-                                                />
-                                                <span>
-                                                    {stat.user.username}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td className="border px-4 py-2">
-                                            {stat.date}
-                                        </td>
-                                        <td className="border px-4 py-2">
-                                            {stat.online_time}
+                            </thead>
+                            <tbody>
+                                {dailyStats.data.length === 0 ? (
+                                    <tr>
+                                        <td
+                                            colSpan="3"
+                                            className="px-4 py-8 text-center text-muted-foreground"
+                                        >
+                                            没有找到记录
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                    <Pagination
-                        items={dailyStats}
-                        searchParams={searchParams}
-                    />
-                </div>
-            </div>
+                                ) : (
+                                    dailyStats.data.map((stat) => (
+                                        <tr key={stat.id} className="border-b last:border-0">
+                                            <td className="px-4 py-2">
+                                                <div className="flex items-center gap-2">
+                                                    <img
+                                                        src={`https://crafthead.net/avatar/${stat.user.username}`}
+                                                        alt={stat.user.username}
+                                                        className="w-6 h-6 rounded-sm"
+                                                    />
+                                                    <span>
+                                                        {stat.user.username}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-2">
+                                                {stat.date}
+                                            </td>
+                                            <td className="px-4 py-2">
+                                                {stat.online_time}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                        <Pagination
+                            items={dailyStats}
+                            searchParams={searchParams}
+                        />
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     );
 }
@@ -115,13 +108,13 @@ function Pagination({ items, searchParams }) {
     };
 
     return (
-        <div className="mt-4 flex justify-center space-x-1">
+        <div className="mt-4 flex justify-center gap-1">
             {items.links.map((link, i) => (
                 <Link
                     key={i}
                     to={buildUrl(link.page)}
                     dangerouslySetInnerHTML={{ __html: link.label }}
-                    className={`px-3 py-1 rounded ${link.active ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+                    className={`px-3 py-1 rounded ${link.active ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-muted"}`}
                 />
             ))}
         </div>

@@ -1,7 +1,7 @@
 import './bootstrap';
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Routes, Route, useLocation, useSearchParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import Nav from './components/Nav';
 import ServerStatusPage from './pages/ServerStatusPage';
@@ -11,6 +11,7 @@ import LoginsPage from './pages/LoginsPage';
 import ChatPage from './pages/ChatPage';
 import LoginLocationsPage from './pages/LoginLocationsPage';
 import LoginPage from './pages/LoginPage';
+import { Skeleton } from './components/ui/skeleton';
 
 function App() {
     const { theme } = useTheme();
@@ -18,30 +19,33 @@ function App() {
     const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
-        // 获取全局 isAdmin 状态
         if (window.isAdmin !== undefined) {
             setIsAdmin(window.isAdmin);
         }
     }, []);
 
-    const bgGradient = theme === 'dark'
-        ? 'bg-gradient-to-r from-sky-500 to-indigo-500 text-white'
-        : 'bg-gradient-to-r from-blue-400 to-indigo-400 text-white';
-
     return (
-        <div className={`min-h-screen ${bgGradient} flex flex-col`}>
+        <div className="min-h-screen">
             <Nav isAdmin={isAdmin} />
-            <div className="flex-1 flex flex-col justify-between">
-                <Routes location={location} key={location.pathname}>
-                    <Route path="/" element={<ServerStatus />} />
-                    <Route path="/users" element={<Users />} />
-                    <Route path="/daily-stats" element={<DailyStats />} />
-                    <Route path="/logins" element={<Logins />} />
-                    <Route path="/chat" element={<Chat />} />
-                    <Route path="/login-locations" element={<LoginLocations />} />
-                    <Route path="/login" element={isAdmin ? <ServerStatus /> : <LoginPage />} />
-                </Routes>
-            </div>
+            <Routes location={location} key={location.pathname}>
+                <Route path="/" element={<ServerStatus />} />
+                <Route path="/users" element={<Users />} />
+                <Route path="/daily-stats" element={<DailyStats />} />
+                <Route path="/logins" element={<Logins />} />
+                <Route path="/chat" element={<Chat />} />
+                <Route path="/login-locations" element={<LoginLocations />} />
+                <Route path="/login" element={isAdmin ? <ServerStatus /> : <LoginPage />} />
+            </Routes>
+        </div>
+    );
+}
+
+function LoadingSkeleton() {
+    return (
+        <div className="container mx-auto p-4 space-y-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-10 w-full" />
         </div>
     );
 }
@@ -60,71 +64,75 @@ function ServerStatus() {
             });
     }, []);
 
-    if (!data) return <div className="flex-1" />;
+    if (!data) return <LoadingSkeleton />;
     return <ServerStatusPage serverStatus={data} />;
 }
 
 function Users() {
-    const [searchParams] = useSearchParams();
     const [data, setData] = useState(null);
+    const location = useLocation();
+    const params = new URLSearchParams(window.location.search);
 
     useEffect(() => {
-        const qs = searchParams.toString();
+        const qs = params.toString();
         fetch(`/api/users${qs ? '?' + qs : ''}`)
             .then(r => r.json())
             .then(d => {
                 setData(d.paginatedData);
                 window.isAdmin = d.isAdmin;
             });
-    }, [location.pathname, searchParams.toString()]);
+    }, [location.pathname, window.location.search]);
 
-    if (!data) return <div className="flex-1" />;
+    if (!data) return <LoadingSkeleton />;
     return <UsersPage users={data} />;
 }
 
 function DailyStats() {
-    const [searchParams] = useSearchParams();
     const [data, setData] = useState(null);
+    const location = useLocation();
 
     useEffect(() => {
-        const qs = searchParams.toString();
+        const params = new URLSearchParams(window.location.search);
+        const qs = params.toString();
         fetch(`/api/daily-stats${qs ? '?' + qs : ''}`)
             .then(r => r.json())
             .then(d => {
                 setData(d.paginatedData);
                 window.isAdmin = d.isAdmin;
             });
-    }, [location.pathname, searchParams.toString()]);
+    }, [location.pathname, window.location.search]);
 
-    if (!data) return <div className="flex-1" />;
+    if (!data) return <LoadingSkeleton />;
     return <DailyStatsPage dailyStats={data} />;
 }
 
 function Logins() {
-    const [searchParams] = useSearchParams();
     const [data, setData] = useState(null);
+    const location = useLocation();
 
     useEffect(() => {
-        const qs = searchParams.toString();
+        const params = new URLSearchParams(window.location.search);
+        const qs = params.toString();
         fetch(`/api/logins${qs ? '?' + qs : ''}`)
             .then(r => r.json())
             .then(d => {
                 setData(d.paginatedData);
                 window.isAdmin = d.isAdmin;
             });
-    }, [location.pathname, searchParams.toString()]);
+    }, [location.pathname, window.location.search]);
 
-    if (!data) return <div className="flex-1" />;
+    if (!data) return <LoadingSkeleton />;
     return <LoginsPage logins={data} />;
 }
 
 function Chat() {
-    const [searchParams] = useSearchParams();
     const [data, setData] = useState(null);
     const [isAdmin, setIsAdmin] = useState(false);
+    const location = useLocation();
 
     useEffect(() => {
-        const qs = searchParams.toString();
+        const params = new URLSearchParams(window.location.search);
+        const qs = params.toString();
         fetch(`/api/chat${qs ? '?' + qs : ''}`)
             .then(r => r.json())
             .then(d => {
@@ -132,19 +140,20 @@ function Chat() {
                 setIsAdmin(d.isAdmin);
                 window.isAdmin = d.isAdmin;
             });
-    }, [location.pathname, searchParams.toString()]);
+    }, [location.pathname, window.location.search]);
 
-    if (!data) return <div className="flex-1" />;
+    if (!data) return <LoadingSkeleton />;
     return <ChatPage chatMessages={data} isAdmin={isAdmin} />;
 }
 
 function LoginLocations() {
-    const [searchParams] = useSearchParams();
     const [data, setData] = useState(null);
     const [isAdmin, setIsAdmin] = useState(false);
+    const location = useLocation();
 
     useEffect(() => {
-        const qs = searchParams.toString();
+        const params = new URLSearchParams(window.location.search);
+        const qs = params.toString();
         fetch(`/api/login-locations${qs ? '?' + qs : ''}`)
             .then(r => r.json())
             .then(d => {
@@ -152,9 +161,9 @@ function LoginLocations() {
                 setIsAdmin(d.isAdmin);
                 window.isAdmin = d.isAdmin;
             });
-    }, [location.pathname, searchParams.toString()]);
+    }, [location.pathname, window.location.search]);
 
-    if (!data) return <div className="flex-1" />;
+    if (!data) return <LoadingSkeleton />;
     return <LoginLocationsPage locations={data} isAdmin={isAdmin} />;
 }
 
@@ -164,5 +173,5 @@ root.render(
         <ThemeProvider>
             <App />
         </ThemeProvider>
-    </BrowserRouter>
+    </BrowserRouter>,
 );

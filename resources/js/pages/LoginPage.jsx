@@ -1,75 +1,78 @@
 import { useState } from "react";
-import { useTheme } from "../contexts/ThemeContext";
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardContent,
+} from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Button } from "../components/ui/button";
 
-export default function LoginPage({ csrfToken, errors = [] }) {
-    const { theme } = useTheme();
+export default function LoginPage({ errors = [] }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
-    const cardBg = theme === "dark" ? "bg-white/10" : "bg-white/80";
-    const textOnDark = theme === "dark" ? "text-white" : "text-gray-800";
-    const inputBg = "bg-white text-gray-900";
+    const csrfToken =
+        document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute("content") ?? "";
 
     return (
         <div className="container mx-auto p-4">
-            <div
-                className={`max-w-md mx-auto ${cardBg} backdrop-blur rounded-lg shadow-lg p-6`}
-            >
-                <h3 className={`text-xl font-semibold ${textOnDark} mb-6`}>
-                    管理员登录
-                </h3>
+            <Card className="max-w-md mx-auto">
+                <CardHeader>
+                    <CardTitle>管理员登录</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {errors && errors.length > 0 && (
+                        <div className="mb-4 text-sm text-destructive">
+                            {errors[0]}
+                        </div>
+                    )}
 
-                {errors && errors.length > 0 && (
-                    <div className="mb-4 text-red-500">{errors[0]}</div>
-                )}
+                    <form method="POST" action="/login" className="space-y-4">
+                        <input type="hidden" name="_token" value={csrfToken} />
 
-                <form method="POST" action="/login">
-                    <input type="hidden" name="_token" value={csrfToken} />
+                        <div className="space-y-2">
+                            <label
+                                className="text-sm font-medium"
+                                htmlFor="username"
+                            >
+                                用户名
+                            </label>
+                            <Input
+                                type="text"
+                                name="username"
+                                id="username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                required
+                            />
+                        </div>
 
-                    <div className="mb-4">
-                        <label
-                            className="block text-gray-700 text-sm font-bold mb-2"
-                            htmlFor="username"
-                        >
-                            用户名
-                        </label>
-                        <input
-                            type="text"
-                            name="username"
-                            id="username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            className={`w-full px-3 py-2 border rounded-lg ${inputBg} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                            required
-                        />
-                    </div>
+                        <div className="space-y-2">
+                            <label
+                                className="text-sm font-medium"
+                                htmlFor="password"
+                            >
+                                密码
+                            </label>
+                            <Input
+                                type="password"
+                                name="password"
+                                id="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                        </div>
 
-                    <div className="mb-6">
-                        <label
-                            className="block text-gray-700 text-sm font-bold mb-2"
-                            htmlFor="password"
-                        >
-                            密码
-                        </label>
-                        <input
-                            type="password"
-                            name="password"
-                            id="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className={`w-full px-3 py-2 border rounded-lg ${inputBg} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                            required
-                        />
-                    </div>
-
-                    <button
-                        type="submit"
-                        className="w-full bg-blue-500 text-white rounded-lg py-2 px-4 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        登录
-                    </button>
-                </form>
-            </div>
+                        <Button type="submit" className="w-full">
+                            登录
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
         </div>
     );
 }

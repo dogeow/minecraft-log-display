@@ -28,6 +28,13 @@ class ApiController extends Controller
         ]);
     }
 
+    public function isAdmin(): JsonResponse
+    {
+        return response()->json([
+            'isAdmin' => Auth::check() && Auth::user()->is_admin,
+        ]);
+    }
+
     public function users(Request $request): JsonResponse
     {
         $query = User::with('loginLocations');

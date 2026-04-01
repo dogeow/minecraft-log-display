@@ -1,5 +1,10 @@
 import { Link, useSearchParams } from "react-router-dom";
-import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardContent,
+} from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import Pagination from "../components/Pagination";
@@ -47,21 +52,21 @@ export default function LoginsPage({ logins }) {
                         )}
                     </form>
 
-                    <div className="rounded-md border">
-                        <table className="w-full">
+                    <div className="rounded-md border overflow-x-auto">
+                        <table className="w-full min-w-[600px]">
                             <thead>
                                 <tr className="border-b bg-muted/50">
-                                    <th className="px-4 py-2 text-left font-semibold">
+                                    <th className="px-3 py-2 text-left font-semibold text-xs">
                                         用户
                                     </th>
-                                    <th className="px-4 py-2 text-left font-semibold">
+                                    <th className="px-3 py-2 text-left font-semibold text-xs">
                                         登录时间
                                     </th>
-                                    <th className="px-4 py-2 text-left font-semibold">
+                                    <th className="px-3 py-2 text-left font-semibold text-xs">
                                         登出时间
                                     </th>
-                                    <th className="px-4 py-2 text-left font-semibold">
-                                        在线时长(秒)
+                                    <th className="px-3 py-2 text-left font-semibold text-xs">
+                                        在线时长
                                     </th>
                                 </tr>
                             </thead>
@@ -81,7 +86,7 @@ export default function LoginsPage({ logins }) {
                                             key={login.id}
                                             className="border-b last:border-0"
                                         >
-                                            <td className="px-4 py-2">
+                                            <td className="px-3 py-2">
                                                 <div className="flex items-center gap-2">
                                                     <img
                                                         src={`https://crafthead.net/avatar/${login.user.username}`}
@@ -90,18 +95,18 @@ export default function LoginsPage({ logins }) {
                                                         }
                                                         className="w-6 h-6 rounded-sm"
                                                     />
-                                                    <span>
+                                                    <span className="truncate max-w-[80px]">
                                                         {login.user.username}
                                                     </span>
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-2">
+                                            <td className="px-3 py-2 text-xs">
                                                 {login.login_at}
                                             </td>
-                                            <td className="px-4 py-2">
+                                            <td className="px-3 py-2 text-xs">
                                                 {login.logout_at || "-"}
                                             </td>
-                                            <td className="px-4 py-2">
+                                            <td className="px-3 py-2 text-xs">
                                                 {login.duration}
                                             </td>
                                         </tr>

@@ -1,5 +1,5 @@
 import "./bootstrap";
-import React, { useState } from "react";
+import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import useSWR, { SWRConfig } from "swr";
@@ -36,7 +36,10 @@ function ServerStatus() {
 
 function Users() {
     const location = useLocation();
-    const { data, isLoading } = useSWR(`/api/users${location.search}`, fetcher);
+    const { data, isLoading } = useSWR(
+        `/api/users${location.search}`,
+        fetcher
+    );
 
     if (isLoading || !data) return <LoadingSkeleton />;
 
@@ -47,7 +50,7 @@ function DailyStats() {
     const location = useLocation();
     const { data, isLoading } = useSWR(
         `/api/daily-stats${location.search}`,
-        fetcher,
+        fetcher
     );
 
     if (isLoading || !data) return <LoadingSkeleton />;
@@ -59,7 +62,7 @@ function Logins() {
     const location = useLocation();
     const { data, isLoading } = useSWR(
         `/api/logins${location.search}`,
-        fetcher,
+        fetcher
     );
 
     if (isLoading || !data) return <LoadingSkeleton />;
@@ -69,23 +72,28 @@ function Logins() {
 
 function Chat() {
     const location = useLocation();
-    const { data, isLoading } = useSWR(`/api/chat${location.search}`, fetcher);
-
-    if (isLoading || !data) return <LoadingSkeleton />;
-
-    return <ChatPage chatMessages={data.paginatedData} />;
-}
-
-function LoginLocations() {
-    const location = useLocation();
+    const { data: adminData } = useSWR("/api/is-admin", fetcher);
     const { data, isLoading } = useSWR(
-        `/api/login-locations${location.search}`,
-        fetcher,
+        `/api/chat${location.search}`,
+        fetcher
     );
 
     if (isLoading || !data) return <LoadingSkeleton />;
 
-    return <LoginLocationsPage locations={data.paginatedData} />;
+    return <ChatPage chatMessages={data.paginatedData} isAdmin={adminData?.isAdmin ?? false} />;
+}
+
+function LoginLocations() {
+    const location = useLocation();
+    const { data: adminData } = useSWR("/api/is-admin", fetcher);
+    const { data, isLoading } = useSWR(
+        `/api/login-locations${location.search}`,
+        fetcher
+    );
+
+    if (isLoading || !data) return <LoadingSkeleton />;
+
+    return <LoginLocationsPage locations={data.paginatedData} isAdmin={adminData?.isAdmin ?? false} />;
 }
 
 function App() {
@@ -97,8 +105,8 @@ function App() {
 }
 
 function AppInner() {
-    const { theme } = useTheme();
-    const [isAdmin, setIsAdmin] = useState(false);
+    const { data: adminData } = useSWR("/api/is-admin", fetcher);
+    const isAdmin = adminData?.isAdmin ?? false;
 
     return (
         <div className="min-h-screen">
@@ -122,5 +130,5 @@ root.render(
         <ThemeProvider>
             <App />
         </ThemeProvider>
-    </BrowserRouter>,
+    </BrowserRouter>
 );

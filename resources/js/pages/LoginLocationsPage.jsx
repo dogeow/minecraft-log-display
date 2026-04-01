@@ -1,5 +1,10 @@
 import { Link, useSearchParams } from "react-router-dom";
-import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardContent,
+} from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import Pagination from "../components/Pagination";
@@ -47,23 +52,23 @@ export default function LoginLocationsPage({ locations, isAdmin }) {
                         )}
                     </form>
 
-                    <div className="rounded-md border">
-                        <table className="w-full">
+                    <div className="rounded-md border overflow-x-auto">
+                        <table className="w-full min-w-[750px]">
                             <thead>
                                 <tr className="border-b bg-muted/50">
-                                    <th className="px-4 py-2 text-left font-semibold">
+                                    <th className="px-3 py-2 text-left font-semibold text-xs">
                                         用户
                                     </th>
-                                    <th className="px-4 py-2 text-left font-semibold">
+                                    <th className="px-3 py-2 text-left font-semibold text-xs">
                                         世界
                                     </th>
-                                    <th className="px-4 py-2 text-left font-semibold">
+                                    <th className="px-3 py-2 text-left font-semibold text-xs">
                                         坐标
                                     </th>
-                                    <th className="px-4 py-2 text-left font-semibold">
-                                        IP地址
+                                    <th className="px-3 py-2 text-left font-semibold text-xs">
+                                        IP
                                     </th>
-                                    <th className="px-4 py-2 text-left font-semibold">
+                                    <th className="px-3 py-2 text-left font-semibold text-xs">
                                         登录时间
                                     </th>
                                 </tr>
@@ -84,7 +89,7 @@ export default function LoginLocationsPage({ locations, isAdmin }) {
                                             key={location.id}
                                             className="border-b last:border-0"
                                         >
-                                            <td className="px-4 py-2">
+                                            <td className="px-3 py-2">
                                                 <div className="flex items-center gap-2">
                                                     <img
                                                         src={`https://crafthead.net/avatar/${location.user.username}`}
@@ -94,23 +99,23 @@ export default function LoginLocationsPage({ locations, isAdmin }) {
                                                         }
                                                         className="w-6 h-6 rounded-sm"
                                                     />
-                                                    <span>
+                                                    <span className="truncate max-w-[80px]">
                                                         {location.user.username}
                                                     </span>
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-2">
+                                            <td className="px-3 py-2 text-xs">
                                                 {location.world}
                                             </td>
-                                            <td className="px-4 py-2">
+                                            <td className="px-3 py-2 text-xs">
                                                 {isAdmin
                                                     ? location.formatted_coordinates
-                                                    : "(*, *, *)"}
+                                                    : "(*,*,*)"}
                                             </td>
-                                            <td className="px-4 py-2">
+                                            <td className="px-3 py-2 text-xs">
                                                 {isAdmin ? location.ip : "***"}
                                             </td>
-                                            <td className="px-4 py-2">
+                                            <td className="px-3 py-2 text-xs">
                                                 {location.login_at}
                                             </td>
                                         </tr>

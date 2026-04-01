@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "../contexts/ThemeContext";
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardContent,
-} from "../components/ui/card";
+import { Card, CardContent } from "../components/ui/card";
+import SkyBackground from "../components/SkyBackground";
+import SkyDecoration from "../components/SkyDecoration";
+import GrassFooter from "../components/GrassFooter";
 
 export default function ServerStatusPage({ serverStatus, csrfToken }) {
     if (!serverStatus) return null;
+
     const { theme, toggleTheme } = useTheme();
     const [latency, setLatency] = useState(null);
 
@@ -49,16 +48,7 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
 
     return (
         <>
-            {/* Gradient sky background in light mode */}
-            {!isDark && (
-                <div
-                    className="fixed start-0 end-0 top-[60px] bottom-0 -z-10"
-                    style={{
-                        background:
-                            "linear-gradient(to bottom, #87CEEB 0%, #FFFFFF 100%)",
-                    }}
-                />
-            )}
+            <SkyBackground isDark={isDark} />
             <div className="relative container mx-auto p-2 pt-6">
                 <div
                     className={`relative mx-auto max-w-3xl ${!isDark ? "bg-white/80 rounded-xl shadow-lg" : ""}`}
@@ -87,7 +77,7 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
                                 ) : (
                                     <div
                                         className={`h-16 w-16 rounded-sm border ${isDark ? "bg-black/30" : "bg-muted"}`}
-                                    ></div>
+                                    />
                                 )}
                             </div>
 
@@ -144,35 +134,7 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
                     </Card>
                 </div>
 
-                {/* Sun and clouds below server card */}
-                {!isDark && (
-                    <div className="relative mx-auto max-w-3xl h-24 mt-4">
-                        <div
-                            className="absolute top-0 right-8 w-14 h-14 rounded-full bg-[#FFD700] shadow-[0_0_40px_15px_rgba(255,215,0,0.4)] cursor-pointer z-10"
-                            onClick={toggleTheme}
-                        />
-                        <div className="absolute top-6 left-[5%] w-28 h-9 bg-white/90 rounded-full blur-[1px]" />
-                        <div className="absolute top-14 left-[20%] w-24 h-7 bg-white/80 rounded-full blur-[1px]" />
-                        <div className="absolute top-4 left-[35%] w-20 h-6 bg-white/85 rounded-full blur-[1px]" />
-                        <div className="absolute top-16 left-[12%] w-16 h-5 bg-white/70 rounded-full blur-[1px]" />
-                    </div>
-                )}
-
-                {/* Moon and clouds below server card */}
-                {isDark && (
-                    <div className="relative mx-auto max-w-3xl h-24 mt-4">
-                        <div
-                            className="absolute top-0 right-8 w-12 h-12 rounded-full bg-[#F4F1C9] shadow-[0_0_30px_10px_rgba(244,241,201,0.3)] cursor-pointer z-10"
-                            onClick={toggleTheme}
-                        >
-                            <div className="absolute top-1 right-1 w-3 h-3 rounded-full bg-[#D4D1A0] opacity-60" />
-                            <div className="absolute top-4 left-2 w-2 h-2 rounded-full bg-[#D4D1A0] opacity-50" />
-                        </div>
-                        <div className="absolute top-10 left-[15%] w-24 h-8 bg-white/20 rounded-full blur-[2px]" />
-                        <div className="absolute top-16 left-[60%] w-20 h-6 bg-white/15 rounded-full blur-[2px]" />
-                        <div className="absolute top-6 left-[40%] w-16 h-5 bg-white/10 rounded-full blur-[2px]" />
-                    </div>
-                )}
+                <SkyDecoration isDark={isDark} onToggle={toggleTheme} />
 
                 {serverStatus.errors?.length > 0 && (
                     <div className="mx-auto mt-6 max-w-3xl space-y-3">
@@ -198,7 +160,7 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
 
                 <div className="mt-8">
                     {serverStatus.players?.length > 0 && (
-                        <div className="flex content-center flex-wrap justify-center gap-2">
+                        <div className="flex flex-wrap content-center justify-center gap-2">
                             {serverStatus.players.map((player) => (
                                 <div
                                     key={player}
@@ -217,29 +179,9 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
                         </div>
                     )}
                 </div>
-
-                <div
-                    className="fixed start-0 end-0 bottom-0 h-12 z-[100]"
-                    style={{
-                        backgroundImage:
-                            "url('/images/minecraft_grass_block_texture.jpg')",
-                        backgroundSize: "auto 3rem",
-                        backgroundRepeat: "repeat-x",
-                    }}
-                />
-                {serverStatus.players?.length > 0 && (
-                    <div className="fixed start-0 end-0 bottom-12 flex items-center justify-center z-[100]">
-                        {serverStatus.players?.map((player) => (
-                            <img
-                                key={player}
-                                src={`https://minotar.net/body/${player}/64.png`}
-                                className="h-24 mx-1"
-                                alt="body"
-                            />
-                        ))}
-                    </div>
-                )}
             </div>
+
+            <GrassFooter players={serverStatus.players} />
         </>
     );
 }

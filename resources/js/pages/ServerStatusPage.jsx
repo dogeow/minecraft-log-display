@@ -9,7 +9,7 @@ import {
 
 export default function ServerStatusPage({ serverStatus, csrfToken }) {
     if (!serverStatus) return null;
-    const { theme } = useTheme();
+    const { theme, toggleTheme } = useTheme();
     const [latency, setLatency] = useState(null);
 
     useEffect(() => {
@@ -52,7 +52,7 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
             {/* Gradient sky background in light mode */}
             {!isDark && (
                 <div
-                    className="fixed start-0 end-0 top-[60px] bottom-0 -z-10"
+                    className="fixed start-4 end-4 top-[60px] bottom-0 -z-10 rounded-b-xl overflow-hidden"
                     style={{
                         background:
                             "linear-gradient(to bottom, #87CEEB 0%, #FFFFFF 100%)",
@@ -147,7 +147,10 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
                 {/* Sun and clouds below server card */}
                 {!isDark && (
                     <div className="relative mx-auto max-w-3xl h-24 mt-4">
-                        <div className="absolute top-0 right-8 w-14 h-14 rounded-full bg-[#FFD700] shadow-[0_0_40px_15px_rgba(255,215,0,0.4)]" />
+                        <div
+                            className="absolute top-0 right-8 w-14 h-14 rounded-full bg-[#FFD700] shadow-[0_0_40px_15px_rgba(255,215,0,0.4)] cursor-pointer"
+                            onClick={toggleTheme}
+                        />
                         <div className="absolute top-6 left-[10%] w-28 h-9 bg-white/90 rounded-full blur-[1px]" />
                         <div className="absolute top-10 left-[50%] w-24 h-7 bg-white/80 rounded-full blur-[1px]" />
                         <div className="absolute top-2 left-[75%] w-20 h-6 bg-white/85 rounded-full blur-[1px]" />
@@ -158,7 +161,10 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
                 {/* Moon and clouds below server card */}
                 {isDark && (
                     <div className="relative mx-auto max-w-3xl h-24 mt-4">
-                        <div className="absolute top-0 right-8 w-12 h-12 rounded-full bg-[#F4F1C9] shadow-[0_0_30px_10px_rgba(244,241,201,0.3)]">
+                        <div
+                            className="absolute top-0 right-8 w-12 h-12 rounded-full bg-[#F4F1C9] shadow-[0_0_30px_10px_rgba(244,241,201,0.3)] cursor-pointer"
+                            onClick={toggleTheme}
+                        >
                             <div className="absolute top-1 right-1 w-3 h-3 rounded-full bg-[#D4D1A0] opacity-60" />
                             <div className="absolute top-4 left-2 w-2 h-2 rounded-full bg-[#D4D1A0] opacity-50" />
                         </div>

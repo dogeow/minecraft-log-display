@@ -1,24 +1,31 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from "react";
 
 const ThemeContext = createContext();
 
+function getAutoTheme() {
+    const hour = new Date().getHours();
+    return hour >= 6 && hour < 18 ? "light" : "dark";
+}
+
 export function ThemeProvider({ children }) {
     const [theme, setTheme] = useState(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('theme') || 'dark';
+        if (typeof window !== "undefined") {
+            const saved = localStorage.getItem("theme");
+            if (saved) return saved;
+            return getAutoTheme();
         }
-        return 'dark';
+        return "dark";
     });
 
     useEffect(() => {
         const root = window.document.documentElement;
-        root.classList.remove('light', 'dark');
+        root.classList.remove("light", "dark");
         root.classList.add(theme);
-        localStorage.setItem('theme', theme);
+        localStorage.setItem("theme", theme);
     }, [theme]);
 
     const toggleTheme = () => {
-        setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+        setTheme((prev) => (prev === "dark" ? "light" : "dark"));
     };
 
     return (

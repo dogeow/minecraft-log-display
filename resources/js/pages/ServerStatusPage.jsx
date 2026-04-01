@@ -110,16 +110,22 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
             {daySky}
             {nightSky}
             <div className="container mx-auto p-2">
-                <div className="mx-auto max-w-3xl">
-                    <Card className="overflow-hidden rounded-t-xl rounded-b-none border-b-0">
+                <div
+                    className={`mx-auto max-w-3xl ${!isDark ? "bg-white/80 rounded-xl shadow-lg" : ""}`}
+                >
+                    <Card
+                        className={`overflow-hidden rounded-t-xl rounded-b-none border-b-0 ${!isDark ? "bg-white/95" : ""}`}
+                    >
                         <div
-                            className={`flex min-h-10 items-center border-b ${isDark ? "bg-black/30" : "bg-muted"} px-4 py-2 text-sm ${textPrimary}`}
+                            className={`flex min-h-10 items-center border-b ${isDark ? "bg-black/30" : "bg-white"} px-4 py-2 text-sm ${textPrimary}`}
                         >
                             {serverStatus.version}
                         </div>
                     </Card>
 
-                    <Card className="rounded-none border-x">
+                    <Card
+                        className={`rounded-none border-x ${!isDark ? "bg-white/95" : ""}`}
+                    >
                         <CardContent className="flex items-start gap-4 p-4">
                             <div className="flex w-16 shrink-0 flex-col items-center">
                                 {serverStatus.favicon ? (
@@ -171,7 +177,9 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
                         </CardContent>
                     </Card>
 
-                    <Card className="overflow-hidden rounded-t-none rounded-b-xl border-t-0">
+                    <Card
+                        className={`overflow-hidden rounded-t-none rounded-b-xl border-t-0 ${!isDark ? "bg-white/95" : ""}`}
+                    >
                         <div
                             className={`flex min-h-10 items-center justify-between gap-4 px-4 py-2 text-sm ${textMuted}`}
                         >

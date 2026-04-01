@@ -109,9 +109,9 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
         <>
             {daySky}
             {nightSky}
-            <div className="relative z-20 container mx-auto p-2">
+            <div className="relative container mx-auto p-2">
                 <div
-                    className={`mx-auto max-w-3xl ${!isDark ? "bg-white/80 rounded-xl shadow-lg" : ""}`}
+                    className={`relative z-20 mx-auto max-w-3xl ${!isDark ? "bg-white/80 rounded-xl shadow-lg" : ""}`}
                 >
                     <Card
                         className={`overflow-hidden rounded-t-xl rounded-b-none border-b-0 ${!isDark ? "bg-white/95" : ""}`}

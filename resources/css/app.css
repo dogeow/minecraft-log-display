@@ -1,10 +1,5 @@
 @import "tailwindcss";
 
-@font-face {
-    font-family: 'Minecraft';
-    src: url('/fonts/minecraft.ttf') format('truetype');
-}
-
 @theme {
     --font-family-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }

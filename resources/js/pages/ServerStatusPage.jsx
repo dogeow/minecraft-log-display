@@ -50,9 +50,9 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
     // Day sky elements (sun, clouds, gradient)
     const daySky = !isDark && (
         <>
-            {/* Gradient sky background */}
+            {/* Gradient sky background - below nav */}
             <div
-                className="fixed inset-0 z-0"
+                className="fixed start-0 end-0 top-[60px] bottom-0 z-0"
                 style={{
                     background:
                         "linear-gradient(to bottom, #87CEEB 0%, #FFFFFF 100%)",

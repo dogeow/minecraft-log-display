@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\ApiController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ApiController;
 use Illuminate\Support\Facades\Route;
 
 // Ping（必须在 catch-all 之前）
@@ -22,7 +22,7 @@ Route::prefix('api')->group(function () {
 });
 
 // 管理员认证
-Route::middleware('guest')->group(function () {
+Route::middleware('guest', 'throttle:5,1')->group(function () {
     Route::post('/login', [AdminController::class, 'login'])->name('login.post');
 });
 

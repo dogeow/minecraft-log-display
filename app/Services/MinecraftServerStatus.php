@@ -59,7 +59,7 @@ class MinecraftServerStatus
     protected function queryServer(string $host, int $port, float $timeout): array
     {
         try {
-            $query = new MinecraftQuery();
+            $query = new MinecraftQuery;
             $query->Connect($host, $port, $timeout);
             $info = $query->GetInfo();
             $players = $query->GetPlayers();
@@ -231,11 +231,13 @@ class MinecraftServerStatus
 
             if ($char !== '§') {
                 $buffer .= $char;
+
                 continue;
             }
 
             if ($index + 1 >= $charCount) {
                 $buffer .= $char;
+
                 continue;
             }
 
@@ -274,6 +276,7 @@ class MinecraftServerStatus
 
             if ($hexColor !== null) {
                 $style = $this->applyLegacyFormattingCode($style, $hexColor);
+
                 continue;
             }
 
@@ -382,6 +385,7 @@ class MinecraftServerStatus
 
             if ($css === []) {
                 $html .= $escaped;
+
                 continue;
             }
 

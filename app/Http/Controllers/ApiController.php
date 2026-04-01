@@ -16,6 +16,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+
 class ApiController extends Controller
 {
     public function serverStatus(MinecraftServerStatus $mcStatus): JsonResponse
@@ -47,7 +48,7 @@ class ApiController extends Controller
             ->orderBy('last_login_at', 'desc');
 
         $sort = $request->get('sort');
-        $direction = $request->get('direction', 'asc');
+        $direction = in_array($request->get('direction'), ['asc', 'desc']) ? $request->get('direction') : 'asc';
         $allowedSorts = ['username', 'last_logout_at', 'total_online_time', 'is_scientist'];
 
         if (in_array($sort, $allowedSorts)) {

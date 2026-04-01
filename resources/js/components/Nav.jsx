@@ -79,7 +79,16 @@ export default function Nav({ isAdmin }) {
                                 href="#"
                                 onClick={async (e) => {
                                     e.preventDefault();
-                                    await fetch("/logout", { method: "POST" });
+                                    const csrfToken =
+                                        document
+                                            .querySelector(
+                                                'meta[name="csrf-token"]',
+                                            )
+                                            ?.getAttribute("content") ?? "";
+                                    await fetch("/logout", {
+                                        method: "POST",
+                                        headers: { "X-CSRF-TOKEN": csrfToken },
+                                    });
                                     window.location.href = "/";
                                 }}
                                 className={`${textColor} ${hoverColor} cursor-pointer`}

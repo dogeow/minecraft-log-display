@@ -174,10 +174,12 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
             >
                 {serverStatus.players?.length > 0 && (
                     <div
-                        className="fixed start-0 end-0 bottom-0 h-12 bg-repeat z-50"
+                        className="fixed start-0 end-0 bottom-0 h-12 z-50"
                         style={{
                             backgroundImage:
                                 "url('/images/minecraft_grass_block_texture.jpg')",
+                            backgroundSize: "auto 3rem",
+                            backgroundRepeat: "repeat-x",
                         }}
                     />
                 )}

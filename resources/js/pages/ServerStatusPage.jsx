@@ -49,6 +49,16 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
 
     return (
         <>
+            {/* Gradient sky background in light mode */}
+            {!isDark && (
+                <div
+                    className="fixed start-0 end-0 top-[60px] bottom-0 -z-10"
+                    style={{
+                        background:
+                            "linear-gradient(to bottom, #87CEEB 0%, #FFFFFF 100%)",
+                    }}
+                />
+            )}
             <div className="relative container mx-auto p-2">
                 <div
                     className={`relative mx-auto max-w-3xl ${!isDark ? "bg-white/80 rounded-xl shadow-lg" : ""}`}

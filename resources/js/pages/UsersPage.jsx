@@ -37,9 +37,7 @@ export default function UsersPage({ users }) {
             className="flex items-center hover:underline"
         >
             {children}
-            {sortIcon(field) && (
-                <span className="ml-1">{sortIcon(field)}</span>
-            )}
+            {sortIcon(field) && <span className="ml-1">{sortIcon(field)}</span>}
         </button>
     );
 
@@ -58,7 +56,9 @@ export default function UsersPage({ users }) {
                             name="search"
                             value={search}
                             onChange={(e) => {
-                                const params = new URLSearchParams(searchParams);
+                                const params = new URLSearchParams(
+                                    searchParams,
+                                );
                                 if (e.target.value) {
                                     params.set("search", e.target.value);
                                 } else {
@@ -98,7 +98,7 @@ export default function UsersPage({ users }) {
                                             <span className="font-semibold truncate">
                                                 {user.username}
                                             </span>
-                                            {user.is_scientist && (
+                                            {user.is_scientist == 1 && (
                                                 <Badge variant="default">
                                                     科学家
                                                 </Badge>
@@ -141,10 +141,7 @@ export default function UsersPage({ users }) {
                             </div>
                         ))}
 
-                        <Pagination
-                            items={users}
-                            searchParams={searchParams}
-                        />
+                        <Pagination items={users} searchParams={searchParams} />
                     </div>
 
                     {/* Desktop table */}
@@ -220,7 +217,7 @@ export default function UsersPage({ users }) {
                                                 )}
                                             </td>
                                             <td className="px-4 py-2">
-                                                {user.is_scientist && (
+                                                {user.is_scientist == 1 && (
                                                     <Badge variant="default">
                                                         科学家
                                                     </Badge>
@@ -231,10 +228,7 @@ export default function UsersPage({ users }) {
                                 </tbody>
                             </table>
                         </div>
-                        <Pagination
-                            items={users}
-                            searchParams={searchParams}
-                        />
+                        <Pagination items={users} searchParams={searchParams} />
                     </div>
                 </CardContent>
             </Card>

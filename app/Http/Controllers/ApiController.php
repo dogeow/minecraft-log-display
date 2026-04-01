@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ChatMessageResource;
+use App\Http\Resources\DailyStatResource;
+use App\Http\Resources\LoginLocationResource;
+use App\Http\Resources\LoginResource;
 use App\Models\ChatMessage;
 use App\Models\DailyStat;
 use App\Models\Login;
@@ -66,7 +70,7 @@ class ApiController extends Controller
         $dailyStats = $query->paginate(10);
 
         return response()->json([
-            'paginatedData' => $dailyStats,
+            'paginatedData' => DailyStatResource::collection($dailyStats)->response()->getData(),
             'isAdmin' => Auth::check() && Auth::user()->is_admin,
         ]);
     }
@@ -86,7 +90,7 @@ class ApiController extends Controller
         $logins = $query->paginate(10);
 
         return response()->json([
-            'paginatedData' => $logins,
+            'paginatedData' => LoginResource::collection($logins)->response()->getData(),
             'isAdmin' => Auth::check() && Auth::user()->is_admin,
         ]);
     }
@@ -105,7 +109,7 @@ class ApiController extends Controller
         $chatMessages = $query->paginate(8);
 
         return response()->json([
-            'paginatedData' => $chatMessages,
+            'paginatedData' => ChatMessageResource::collection($chatMessages)->response()->getData(),
             'isAdmin' => Auth::check() && Auth::user()->is_admin,
         ]);
     }
@@ -125,7 +129,7 @@ class ApiController extends Controller
         $locations = $query->paginate(10);
 
         return response()->json([
-            'paginatedData' => $locations,
+            'paginatedData' => LoginLocationResource::collection($locations)->response()->getData(),
             'isAdmin' => Auth::check() && Auth::user()->is_admin,
         ]);
     }

@@ -183,22 +183,18 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
                         }}
                     />
                 )}
-                <div
-                    className="flex items-center justify-center"
-                    style={{
-                        paddingBottom:
-                            serverStatus.players?.length > 0 ? "3rem" : 0,
-                    }}
-                >
-                    {serverStatus.players?.map((player) => (
-                        <img
-                            key={player}
-                            src={`https://minotar.net/body/${player}/64.png`}
-                            className="h-24 mx-1"
-                            alt="body"
-                        />
-                    ))}
-                </div>
+                {serverStatus.players?.length > 0 && (
+                    <div className="fixed start-0 end-0 bottom-12 flex items-center justify-center z-[60]">
+                        {serverStatus.players?.map((player) => (
+                            <img
+                                key={player}
+                                src={`https://minotar.net/body/${player}/64.png`}
+                                className="h-24 mx-1"
+                                alt="body"
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

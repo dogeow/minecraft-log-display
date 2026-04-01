@@ -18,11 +18,9 @@ export default function Nav({ isAdmin }) {
     const textColor = theme === "dark" ? "text-white" : "text-gray-800";
     const hoverColor =
         theme === "dark" ? "hover:text-gray-200" : "hover:text-gray-600";
-    const menuBg = theme === "dark" ? "bg-gray-900" : "bg-white";
-    const borderColor = theme === "dark" ? "border-gray-700" : "border-gray-200";
 
     return (
-        <nav className="bg-transparent backdrop-blur-sm">
+        <nav>
             <div className="container mx-auto px-4">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center py-3">
                     {/* Title row */}
@@ -93,15 +91,13 @@ export default function Nav({ isAdmin }) {
 
                     {/* Mobile dropdown */}
                     {isAdmin && menuOpen && (
-                        <div
-                            className={`mt-3 rounded-lg border shadow-lg overflow-hidden ${menuBg} ${borderColor}`}
-                        >
+                        <div className="mt-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden backdrop-blur-sm">
                             {navLinks.map((link) => (
                                 <Link
                                     key={link.path}
                                     to={link.path}
                                     onClick={() => setMenuOpen(false)}
-                                    className={`block px-4 py-3 ${textColor} ${hoverColor} ${location.pathname === link.path ? "font-semibold" : ""} border-b last:border-b-0 ${borderColor}`}
+                                    className={`block px-4 py-3 ${textColor} ${hoverColor} ${location.pathname === link.path ? "font-semibold" : ""} border-b border-gray-200 dark:border-gray-700 last:border-b-0`}
                                 >
                                     {link.label}
                                 </Link>

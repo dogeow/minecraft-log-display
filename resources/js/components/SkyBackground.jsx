@@ -3,7 +3,7 @@ export default function SkyBackground({ isDark }) {
 
     return (
         <div
-            className="fixed start-0 end-0 top-[60px] bottom-0 -z-10"
+            className="fixed inset-0 -z-10"
             style={{
                 background:
                     "linear-gradient(to bottom, #87CEEB 0%, #FFFFFF 100%)",

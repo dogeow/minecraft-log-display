@@ -12,7 +12,7 @@
                     用户名
                 </label>
                 <input type="text" name="username" id="username"
-                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       class="w-full px-3 py-2 border rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                        required>
             </div>
 
@@ -21,7 +21,7 @@
                     密码
                 </label>
                 <input type="password" name="password" id="password"
-                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       class="w-full px-3 py-2 border rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                        required>
             </div>
 

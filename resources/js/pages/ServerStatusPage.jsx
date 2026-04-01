@@ -151,10 +151,10 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
                             className="absolute top-0 right-8 w-14 h-14 rounded-full bg-[#FFD700] shadow-[0_0_40px_15px_rgba(255,215,0,0.4)] cursor-pointer z-10"
                             onClick={toggleTheme}
                         />
-                        <div className="absolute top-6 left-[10%] w-28 h-9 bg-white/90 rounded-full blur-[1px]" />
-                        <div className="absolute top-10 left-[50%] w-24 h-7 bg-white/80 rounded-full blur-[1px]" />
-                        <div className="absolute top-2 left-[75%] w-20 h-6 bg-white/85 rounded-full blur-[1px]" />
-                        <div className="absolute top-14 left-[30%] w-16 h-5 bg-white/70 rounded-full blur-[1px]" />
+                        <div className="absolute top-6 left-[5%] w-28 h-9 bg-white/90 rounded-full blur-[1px]" />
+                        <div className="absolute top-14 left-[20%] w-24 h-7 bg-white/80 rounded-full blur-[1px]" />
+                        <div className="absolute top-4 left-[35%] w-20 h-6 bg-white/85 rounded-full blur-[1px]" />
+                        <div className="absolute top-16 left-[12%] w-16 h-5 bg-white/70 rounded-full blur-[1px]" />
                     </div>
                 )}
 

@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DailyStat;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 class DailyStatController extends Controller
 {
@@ -16,15 +16,15 @@ class DailyStatController extends Controller
 
         if ($request->search) {
             $query->whereHas('user', function ($q) use ($request) {
-                $q->where('name', 'like', "%{$request->search}%");
+                $q->where('username', 'like', "%{$request->search}%");
             });
         }
 
         $dailyStats = $query->paginate(10);
 
-        return view('daily-stats.index', [
-            'dailyStats' => $dailyStats,
-            'search' => $request->search
+        return view('app', [
+            'paginatedData' => $dailyStats,
+            'isAdmin' => Auth::check() && Auth::user()->is_admin,
         ]);
     }
-} 
+}

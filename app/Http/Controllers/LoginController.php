@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Login;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
@@ -16,15 +16,15 @@ class LoginController extends Controller
 
         if ($request->search) {
             $query->whereHas('user', function ($q) use ($request) {
-                $q->where('name', 'like', "%{$request->search}%");
+                $q->where('username', 'like', "%{$request->search}%");
             });
         }
 
         $logins = $query->paginate(10);
 
-        return view('logins.index', [
-            'logins' => $logins,
-            'search' => $request->search
+        return view('app', [
+            'paginatedData' => $logins,
+            'isAdmin' => Auth::check() && Auth::user()->is_admin,
         ]);
     }
-} 
+}

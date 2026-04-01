@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
+import { Button } from "./ui/button";
 
 export default function Nav({ isAdmin }) {
     const location = useLocation();
@@ -38,7 +39,6 @@ export default function Nav({ isAdmin }) {
 
     return (
         <nav className="bg-transparent backdrop-blur-sm">
-        >
             <div className="container mx-auto px-4">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center py-3">
                     <div className="flex justify-between items-center w-full">
@@ -91,15 +91,16 @@ export default function Nav({ isAdmin }) {
                             ))}
 
                         {isAdmin && (
-                            <button
+                            <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={async () => {
                                     await fetch("/logout", { method: "POST" });
                                     window.location.href = "/";
                                 }}
-                                className={`block mt-4 md:inline-block md:mt-0 ${textColor} ${hoverColor} cursor-pointer`}
                             >
                                 退出登录
-                            </button>
+                            </Button>
                         )}
                     </div>
                 </div>

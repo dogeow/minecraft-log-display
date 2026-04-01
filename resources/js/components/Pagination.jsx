@@ -12,7 +12,11 @@ function sliceLinks(links) {
     const currentIdx = links.findIndex((l) => l.active);
 
     const nearby = [];
-    for (let i = Math.max(2, currentIdx - 1); i <= Math.min(currentIdx + 1, total - 3); i++) {
+    for (
+        let i = Math.max(2, currentIdx - 1);
+        i <= Math.min(currentIdx + 1, total - 3);
+        i++
+    ) {
         nearby.push(links[i]);
     }
 
@@ -52,21 +56,19 @@ export default function Pagination({ items, searchParams }) {
     const visibleLinks = isMobile ? sliceLinks(items.links) : items.links;
 
     return (
-        <div className="mt-4 overflow-x-auto">
-            <div className="flex justify-center gap-1 min-w-max">
-                {visibleLinks.map((link, i) => (
-                    <Link
-                        key={i}
-                        to={buildUrl(link.page)}
-                        dangerouslySetInnerHTML={{ __html: link.label }}
-                        className={`px-2 py-1 text-xs rounded ${
-                            link.active
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-secondary text-secondary-foreground hover:bg-muted"
-                        }`}
-                    />
-                ))}
-            </div>
+        <div className="mt-4 flex justify-center">
+            {visibleLinks.map((link, i) => (
+                <Link
+                    key={i}
+                    to={buildUrl(link.page)}
+                    dangerouslySetInnerHTML={{ __html: link.label }}
+                    className={`inline-flex h-8 items-center justify-center rounded-md px-3 text-xs font-medium transition-colors ${
+                        link.active
+                            ? "bg-[var(--color-primary)] text-[var(--color-primary-foreground)] shadow"
+                            : "bg-[var(--color-secondary)] text-[var(--color-secondary-foreground)] shadow-sm hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)]"
+                    }`}
+                />
+            ))}
         </div>
     );
 }

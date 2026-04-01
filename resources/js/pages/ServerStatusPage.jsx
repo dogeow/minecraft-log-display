@@ -47,43 +47,6 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
     const textPrimary = isDark ? "text-[#FFAA00]" : "text-yellow-600";
     const textMuted = isDark ? "text-[#AAAAAA]" : "text-gray-500";
 
-    // Night sky elements (stars, moon, clouds)
-    const nightSky = isDark && (
-        <>
-            {/* Stars */}
-            {[
-                "top-[8%] left-[12%]",
-                "top-[15%] left-[35%]",
-                "top-[5%] left-[55%]",
-                "top-[20%] left-[75%]",
-                "top-[12%] left-[88%]",
-                "top-[25%] left-[22%]",
-                "top-[30%] left-[65%]",
-                "top-[18%] left-[45%]",
-                "top-[35%] left-[8%]",
-                "top-[10%] left-[92%]",
-            ].map((pos, i) => (
-                <div
-                    key={`star-${i}`}
-                    className={`fixed ${pos} w-0.5 h-0.5 rounded-full bg-white animate-pulse -z-10`}
-                    style={{
-                        animationDelay: `${i * 0.3}s`,
-                        opacity: 0.7 + (i % 3) * 0.1,
-                    }}
-                />
-            ))}
-            {/* Moon */}
-            <div className="fixed top-6 right-16 w-12 h-12 rounded-full bg-[#F4F1C9] shadow-[0_0_30px_10px_rgba(244,241,201,0.3)] -z-10">
-                <div className="absolute top-1 right-1 w-3 h-3 rounded-full bg-[#D4D1A0] opacity-60" />
-                <div className="absolute top-4 left-2 w-2 h-2 rounded-full bg-[#D4D1A0] opacity-50" />
-            </div>
-            {/* Clouds */}
-            <div className="fixed top-16 left-[15%] w-24 h-8 bg-white/20 rounded-full blur-[2px] -z-10" />
-            <div className="fixed top-24 left-[60%] w-20 h-6 bg-white/15 rounded-full blur-[2px] -z-10" />
-            <div className="fixed top-10 left-[40%] w-16 h-5 bg-white/10 rounded-full blur-[2px] -z-10" />
-        </>
-    );
-
     return (
         <>
             <div className="relative container mx-auto p-2">
@@ -179,6 +142,19 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
                         <div className="absolute top-10 left-[50%] w-24 h-7 bg-white/80 rounded-full blur-[1px]" />
                         <div className="absolute top-2 left-[75%] w-20 h-6 bg-white/85 rounded-full blur-[1px]" />
                         <div className="absolute top-14 left-[30%] w-16 h-5 bg-white/70 rounded-full blur-[1px]" />
+                    </div>
+                )}
+
+                {/* Moon and clouds below server card */}
+                {isDark && (
+                    <div className="relative mx-auto max-w-3xl h-24 mt-4">
+                        <div className="absolute top-0 right-8 w-12 h-12 rounded-full bg-[#F4F1C9] shadow-[0_0_30px_10px_rgba(244,241,201,0.3)]">
+                            <div className="absolute top-1 right-1 w-3 h-3 rounded-full bg-[#D4D1A0] opacity-60" />
+                            <div className="absolute top-4 left-2 w-2 h-2 rounded-full bg-[#D4D1A0] opacity-50" />
+                        </div>
+                        <div className="absolute top-10 left-[15%] w-24 h-8 bg-white/20 rounded-full blur-[2px]" />
+                        <div className="absolute top-16 left-[60%] w-20 h-6 bg-white/15 rounded-full blur-[2px]" />
+                        <div className="absolute top-6 left-[40%] w-16 h-5 bg-white/10 rounded-full blur-[2px]" />
                     </div>
                 )}
 

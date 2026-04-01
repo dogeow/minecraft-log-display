@@ -59,7 +59,7 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
                     }}
                 />
             )}
-            <div className="relative container mx-auto p-2">
+            <div className="relative container mx-auto p-2 pt-6">
                 <div
                     className={`relative mx-auto max-w-3xl ${!isDark ? "bg-white/80 rounded-xl shadow-lg" : ""}`}
                 >

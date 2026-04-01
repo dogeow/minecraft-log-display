@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "../contexts/ThemeContext";
-import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardContent,
+} from "../components/ui/card";
 
 export default function ServerStatusPage({ serverStatus, csrfToken }) {
     if (!serverStatus) return null;
@@ -94,7 +99,9 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
                                         />
                                     ))}
                                 </div>
-                                <div className={`text-xs leading-none ${textPrimary}`}>
+                                <div
+                                    className={`text-xs leading-none ${textPrimary}`}
+                                >
                                     {serverStatus.online_players} /{" "}
                                     {serverStatus.max_players}
                                 </div>
@@ -152,7 +159,9 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
                                     className="mx-auto h-8 w-8"
                                     alt="cube"
                                 />
-                                <div className="text-center text-sm">{player}</div>
+                                <div className="text-center text-sm">
+                                    {player}
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -164,11 +173,12 @@ export default function ServerStatusPage({ serverStatus, csrfToken }) {
                 style={{ borderBottom: "3rem solid transparent" }}
             >
                 {serverStatus.players?.length > 0 && (
-                    <img
-                        src="/images/minecraft_grass_block_texture.jpg"
-                        className="absolute inset-x-0 bottom-0 w-full"
-                        style={{ height: "3rem", objectFit: "fill" }}
-                        alt=""
+                    <div
+                        className="fixed start-0 end-0 bottom-0 h-12 bg-repeat z-50"
+                        style={{
+                            backgroundImage:
+                                "url('/images/minecraft_grass_block_texture.jpg')",
+                        }}
                     />
                 )}
                 <div

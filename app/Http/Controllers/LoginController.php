@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
+    /**
+     * 显示登录记录页面（分页）.
+     *
+     * 支持按用户名搜索，关联加载用户信息，按登录时间倒序。
+     */
     public function index(Request $request)
     {
         $query = Login::query()
@@ -16,7 +21,7 @@ class LoginController extends Controller
 
         if ($request->search) {
             $query->whereHas('user', function ($q) use ($request) {
-                $q->where('username', 'like', "%{$request->search}%");
+                $q->where('username', 'like', '%' . $request->search . '%');
             });
         }
 

@@ -2,16 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class AdminController extends Controller
 {
-    public function showLoginForm()
+    /**
+     * 显示管理员登录表单.
+     *
+     * 已登录的管理员直接跳转到首页。
+     */
+    public function showLoginForm(): View|RedirectResponse
     {
         if (Auth::check() && Auth::user()->is_admin) {
             return redirect('/');
         }
+
         $errors = session('errors') ? session('errors')->all() : [];
 
         return view('app', [
@@ -20,7 +28,12 @@ class AdminController extends Controller
         ]);
     }
 
-    public function login(Request $request)
+    /**
+     * 处理管理员登录请求.
+     *
+     * 验证凭据，仅允许 is_admin 为 true 的用户登录。
+     */
+    public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
             'username' => 'required',
@@ -47,7 +60,10 @@ class AdminController extends Controller
         ]);
     }
 
-    public function logout(Request $request)
+    /**
+     * 处理管理员登出.
+     */
+    public function logout(Request $request): RedirectResponse
     {
         Auth::logout();
         $request->session()->invalidate();

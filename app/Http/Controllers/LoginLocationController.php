@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\Auth;
 
 class LoginLocationController extends Controller
 {
+    /**
+     * 显示登录位置记录页面（分页）.
+     *
+     * 支持按用户名搜索，关联加载用户和登录记录。
+     */
     public function index(Request $request)
     {
         $query = LoginLocation::query()
@@ -16,7 +21,7 @@ class LoginLocationController extends Controller
 
         if ($request->search) {
             $query->whereHas('user', function ($q) use ($request) {
-                $q->where('username', 'like', "%{$request->search}%");
+                $q->where('username', 'like', '%' . $request->search . '%');
             });
         }
 

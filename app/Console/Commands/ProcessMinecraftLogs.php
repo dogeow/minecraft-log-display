@@ -31,6 +31,12 @@ class ProcessMinecraftLogs extends Command
         $this->lastProcessedLine = 0;
     }
 
+    /**
+     * 处理 Minecraft 服务器实时日志.
+     *
+     * 读取 latest.log 从上次处理位置之后的增量行，
+     * 识别登录、登出、聊天等事件并写入数据库。
+     */
     public function handle(): int
     {
         if (!file_exists($this->logFile)) {
@@ -79,6 +85,11 @@ class ProcessMinecraftLogs extends Command
         return 0;
     }
 
+    /**
+     * 统计文件行数.
+     *
+     * 流式读取文件，每读一行计数器加一，用于判断日志文件是否被截断重写。
+     */
     private function countLines(string $path): int
     {
         $count = 0;
@@ -94,6 +105,12 @@ class ProcessMinecraftLogs extends Command
         return $count;
     }
 
+    /**
+     * 解析单行日志并分发到对应处理方法.
+     *
+     * 依次匹配 UUID、登录、登出、聊天消息等日志行格式，
+     * 异常不中断后续行处理。
+     */
     private function processLine(string $line): void
     {
         // UUID 缓存

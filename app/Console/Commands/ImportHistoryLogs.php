@@ -43,6 +43,12 @@ class ImportHistoryLogs extends Command
         $this->logPath = config('minecraft.log_path');
     }
 
+    /**
+     * 导入 Minecraft 历史日志文件.
+     *
+     * 扫描日志目录中的所有日志文件，按文件名排序逐个处理，提取登录、登出、聊天等事件，
+     * 并记录到数据库。可选清空现有数据后重新导入。
+     */
     public function handle(): int
     {
         try {
@@ -82,6 +88,12 @@ class ImportHistoryLogs extends Command
         }
     }
 
+    /**
+     * 获取并排序日志文件列表.
+     *
+     * 只返回 latest.log 和符合日期格式 (YYYY-MM-DD-N.log) 的文件，
+     * 按文件名排序，latest.log 排在最后。
+     */
     private function getLogFiles(): \Illuminate\Support\Collection
     {
         return collect(File::files($this->logPath))
@@ -95,6 +107,11 @@ class ImportHistoryLogs extends Command
             });
     }
 
+    /**
+     * 清空所有相关数据表.
+     *
+     * 在重新导入历史日志前调用，truncate 方式清空 User、Login、DailyStat、ChatMessage 表。
+     */
     private function clearData(): void
     {
         $this->info('清空数据...');
@@ -105,6 +122,11 @@ class ImportHistoryLogs extends Command
         $this->info('数据清空完成');
     }
 
+    /**
+     * 流式读取并处理单个日志文件.
+     *
+     * 使用 fopen/fgets 逐行读取，避免一次性加载大文件到内存。
+     */
     private function processFile(string $path): void
     {
         $handle = fopen($path, 'r');
@@ -132,6 +154,11 @@ class ImportHistoryLogs extends Command
         }
     }
 
+    /**
+     * 解析单行日志并分发到对应的处理方法.
+     *
+     * 依次匹配 UUID、登录、登出、科学家标记、聊天消息等日志行格式。
+     */
     private function processLine(string $line): void
     {
         // UUID 缓存
@@ -212,6 +239,12 @@ class ImportHistoryLogs extends Command
         }
     }
 
+    /**
+     * 从日志行解析时间戳.
+     *
+     * 日期从当前处理的文件名获取（latest.log 使用当天日期），
+     * 时间从日志行中 HH:MM:SS 格式提取。
+     */
     private function parseTimestamp(string $timeString): Carbon
     {
         $date = $this->currentFile === 'latest.log'
@@ -225,6 +258,11 @@ class ImportHistoryLogs extends Command
         return Carbon::createFromFormat('Y-m-d H:i:s', $date . ' ' . $m[1]);
     }
 
+    /**
+     * 从当前文件名中提取日期部分.
+     *
+     * 匹配格式 YYYY-MM-DD-N.log，提取 YYYY-MM-DD 部分。
+     */
     private function extractDateFromFile(): string
     {
         if (!preg_match(self::REGEX_DATE_FILE, $this->currentFile, $m)) {
@@ -234,6 +272,12 @@ class ImportHistoryLogs extends Command
         return $m[1];
     }
 
+    /**
+     * 处理用户登录事件.
+     *
+     * 创建登录记录、更新用户状态，并尝试从日志中提取登录位置（IP、世界坐标等）。
+     * 跳过 1 分钟内的重复登录和恶意用户。
+     */
     private function handleLogin(string $username, string $uuid, Carbon $timestamp): void
     {
         if ($this->isMaliciousUser($username)) {
@@ -281,6 +325,12 @@ class ImportHistoryLogs extends Command
         $this->info("用户 {$username} 在 {$timestamp} 登录");
     }
 
+    /**
+     * 处理用户登出事件.
+     *
+     * 计算在线时长，更新登录记录的登出时间和时长，
+     * 累加用户总在线时间，并更新每日统计数据。
+     */
     private function handleLogout(string $username, Carbon $timestamp): void
     {
         if ($this->isMaliciousUser($username)) {
@@ -336,6 +386,12 @@ class ImportHistoryLogs extends Command
         unset($this->currentLogin[$username]);
     }
 
+    /**
+     * 更新用户的每日在线时长统计.
+     *
+     * 根据登录日期找到或创建对应的 DailyStat 记录，
+     * 并累加当天的在线时长。
+     */
     private function updateDailyStats(User $user, Login $login, int $duration): void
     {
         $date = $login->created_at->toDateString();
@@ -346,6 +402,12 @@ class ImportHistoryLogs extends Command
         $dailyStat->increment('online_time', $duration);
     }
 
+    /**
+     * 从缓存中查找用户的 UUID.
+     *
+     * UUID 在处理登录前通过日志中的 User Authenticator 行预先缓存。
+     * 找到后从缓存中移除，确保每次登录只使用一次。
+     */
     private function findUuid(string $username): string
     {
         if (isset($this->uuidCache[$username])) {
@@ -359,6 +421,14 @@ class ImportHistoryLogs extends Command
     }
 
     /**
+     * @return array{ip: string, world: string, x: float, y: float, z: float, entity_id: string}|null
+     */
+    /**
+     * 从当前日志文件中查找用户的登录位置信息.
+     *
+     * 匹配 "username logged in with entity id X at (world, x, y, z)" 格式，
+     * 返回 IP、世界坐标和实体 ID。结果会被缓存，同一文件中多次查找直接命中缓存。
+     *
      * @return array{ip: string, world: string, x: float, y: float, z: float, entity_id: string}|null
      */
     private function findLoginPosition(string $username): ?array
@@ -404,6 +474,11 @@ class ImportHistoryLogs extends Command
         return null;
     }
 
+    /**
+     * 检查用户名是否为恶意用户.
+     *
+     * 目前匹配模式 ^Cornbread\d+$，匹配则跳过该用户的所有操作。
+     */
     private function isMaliciousUser(string $username): bool
     {
         return (bool) preg_match(self::MALICIOUS_USER_PATTERN, $username);

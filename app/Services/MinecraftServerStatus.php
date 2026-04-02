@@ -60,6 +60,12 @@ class MinecraftServerStatus
     /** @var array<string, array{info: mixed, error: string|null}> */
     private array $pingConnection;
 
+    /**
+     * 获取 Minecraft 服务器状态.
+     *
+     * 通过 Ping 和 Query 两种协议查询服务器信息，包括在线玩家、版本、MOTD 等，
+     * 并将原始数据规范化为前端友好的结构。
+     */
     public function getServerStatus(): array
     {
         $host = (string) config('minecraft.server.ip');
@@ -82,7 +88,14 @@ class MinecraftServerStatus
         );
     }
 
-    /** @return array{info: mixed, error: string|null} */
+    /**
+     * 通过 Ping 协议查询 Minecraft 服务器基本信息.
+     *
+     * 使用 xPaw MinecraftPing 库获取服务器信息，若 Query() 失败
+     * 则降级到 QueryOldPre17() 以兼容旧版本服务器。
+     *
+     * @return array{info: mixed, error: string|null}
+     */
     protected function pingServer(string $host, int $port, float $timeout): array
     {
         $key = "{$host}:{$port}";
@@ -122,7 +135,14 @@ class MinecraftServerStatus
         return $result;
     }
 
-    /** @return array{info: mixed, players: mixed, error: string|null} */
+    /**
+     * 通过 Query 协议查询 Minecraft 服务器详细信息和玩家列表.
+     *
+     * 使用 xPaw MinecraftQuery 库获取服务器完整信息，
+     * 包括在线玩家名称列表、插件信息等。
+     *
+     * @return array{info: mixed, players: mixed, error: string|null}
+     */
     protected function queryServer(string $host, int $port, float $timeout): array
     {
         $key = "{$host}:{$port}";
@@ -154,8 +174,13 @@ class MinecraftServerStatus
         return $result;
     }
 
-    /** @param array{info: mixed, error: string|null} $pingResult
-     *  @param array{info: mixed, players: mixed, error: string|null} $queryResult
+    /**
+     * 将 Ping 和 Query 结果合并为规范化的服务器状态结构.
+     *
+     * 优先使用 Query 数据，Ping 数据作为补充填充缺失字段（如版本、在线人数等）。
+     *
+     * @param array{info: mixed, error: string|null} $pingResult Ping 查询结果
+     * @param array{info: mixed, players: mixed, error: string|null} $queryResult Query 查询结果
      */
     protected function buildServerStatus(array $pingResult, array $queryResult, float $elapsed, string $host): array
     {
@@ -224,7 +249,13 @@ class MinecraftServerStatus
         ];
     }
 
-    /** @return array{plain: string, html: string} */
+    /**
+     * 构建 MOTD (Message of the Day) 的纯文本和 HTML 两个版本.
+     *
+     * @param mixed $description 服务器 MOTD 原始数据，支持新旧两种 JSON 格式
+     * @param string $hostName 服务器名称（当 description 为空时作为后备）
+     * @return array{plain: string, html: string} plain 为纯文本，html 为带样式的 HTML
+     */
     protected function buildMotd(mixed $description, string $hostName): array
     {
         $fragments = $this->extractMinecraftFragments($description);
@@ -251,6 +282,14 @@ class MinecraftServerStatus
     }
 
     /**
+     * 递归提取 Minecraft JSON 文本中的文本片段列表.
+     *
+     * 支持新旧两种 MOTD 格式：
+     * - 新格式 (1.7+)：JSON TextComponent，包含 text/translate/extra 等字段
+     * - 旧格式：纯字符串或包含 legacy 字段的对象
+     *
+     * @param mixed $description MOTD 原始数据
+     * @param array|null $parentStyle 继承自父级的样式（用于递归传递）
      * @return array<int, array{text: string, style: array{color: ?string, bold: bool, italic: bool, underlined: bool, strikethrough: bool, obfuscated: bool}}>
      */
     protected function extractMinecraftFragments(mixed $description, ?array $parentStyle = null): array
@@ -293,7 +332,13 @@ class MinecraftServerStatus
     }
 
     /**
-     * @param array{color: ?string, bold: bool, italic: bool, underlined: bool, strikethrough: bool, obfuscated: bool} $baseStyle
+     * 解析旧版 Minecraft 纯文本 MOTD 中的 § 格式代码.
+     *
+     * 处理 Minecraft 遗留的颜色代码和格式代码（如 §c 表示红色、§l 表示加粗），
+     * 以及 §xRRGGBB 十六进制颜色格式。将文本拆分为带样式的片段列表。
+     *
+     * @param string $text 包含 § 代码的原始文本
+     * @param array|null $baseStyle 继承的基础样式
      * @return array<int, array{text: string, style: array{color: ?string, bold: bool, italic: bool, underlined: bool, strikethrough: bool, obfuscated: bool}}>
      */
     protected function parseLegacyMinecraftText(string $text, ?array $baseStyle = null): array
@@ -351,7 +396,17 @@ class MinecraftServerStatus
         return $fragments;
     }
 
-    /** @param array<int, string> $chars */
+    /**
+     * 从 §x 十六进制颜色序列中解析出颜色值.
+     *
+     * Minecraft 1.16+ 支持 §x§R§R§G§G§B§B 格式的十六进制颜色，
+     * 例如 §x§F§F§0§0§0§0 表示黑色 #FF0000。
+     *
+     * @param array<int, string> $chars 文本字符数组
+     * @param int $index 当前 § 符号的索引位置
+     * @param int $charCount 字符数组总长度
+     * @return string|null 解析出的十六进制颜色（如 #FF0000）或 null（非十六进制颜色序列）
+     */
     private function parseHexColor(array $chars, int $index, int $charCount): ?string
     {
         if ($chars[$index + 1] !== 'x' || $index + 13 >= $charCount) {
@@ -373,7 +428,17 @@ class MinecraftServerStatus
         return '#' . strtoupper($hexDigits);
     }
 
-    /** @param array{color: ?string, bold: bool, italic: bool, underlined: bool, strikethrough: bool, obfuscated: bool} $style */
+    /**
+     * 将 Minecraft § 格式代码应用到当前样式.
+     *
+     * 支持：
+     * - 颜色代码 §0-§f（映射到 COLOR_CODE_MAP）
+     * - 十六进制颜色 §#RRGGBB
+     * - 格式代码 §k(乱码) §l(加粗) §m(删除线) §n(下划线) §o(斜体) §r(重置)
+     *
+     * @param array $style 当前样式数组
+     * @param string $code 单字符格式代码或十六进制颜色
+     */
     protected function applyLegacyFormattingCode(array $style, string $code): array
     {
         if (str_starts_with($code, '#')) {
@@ -395,7 +460,12 @@ class MinecraftServerStatus
         };
     }
 
-    /** @param array{color?: mixed, bold?: mixed, italic?: mixed, underlined?: mixed, strikethrough?: mixed, obfuscated?: mixed} $component */
+    /**
+     * 将 JSON TextComponent 中的样式属性应用到当前样式.
+     *
+     * @param array $style 当前继承的样式
+     * @param array $component JSON TextComponent 节点，包含 color/bold/italic 等属性
+     */
     protected function applyComponentStyle(array $style, array $component): array
     {
         if (isset($component['color']) && is_string($component['color'])) {
@@ -414,7 +484,14 @@ class MinecraftServerStatus
         return $style;
     }
 
-    /** @param array<int, array{text: string, style: array{color: ?string, bold: bool, italic: bool, underlined: bool, strikethrough: bool, obfuscated: bool}} $fragments */
+    /**
+     * 将文本片段列表渲染为带样式的 HTML 字符串.
+     *
+     * 每个片段根据其样式生成对应的 CSS 并包裹在 <span> 标签中，
+     * 支持颜色、加粗、斜体、下划线、删除线、乱码效果。
+     *
+     * @param array $fragments 文本片段列表，每项包含 text 和 style
+     */
     protected function renderMinecraftFragmentsAsHtml(array $fragments): string
     {
         $html = '';
@@ -445,7 +522,11 @@ class MinecraftServerStatus
         return $html;
     }
 
-    /** @param array{color: ?string, bold: bool, italic: bool, underlined: bool, strikethrough: bool, obfuscated: bool} $style */
+    /**
+     * 根据样式属性构建 CSS 样式字符串.
+     *
+     * @param array $style 样式属性数组，包含 color/bold/italic/underlined/strikethrough/obfuscated
+     */
     private function buildFragmentCss(array $style): string
     {
         $parts = [];
@@ -478,6 +559,14 @@ class MinecraftServerStatus
         return implode('; ', $parts);
     }
 
+    /**
+     * 将 Minecraft 颜色名或十六进制值解析为标准化的十六进制颜色字符串.
+     *
+     * 支持 named colors (如 'red', 'dark_blue') 和已格式化的 hex (如 '#FF5555')。
+     * 如果颜色格式无效或不在已知颜色映射中则返回 null。
+     *
+     * @param string $color Minecraft 颜色名或十六进制颜色值
+     */
     protected function resolveMinecraftColor(string $color): ?string
     {
         if (preg_match('/^#[0-9a-f]{6}$/i', $color) === 1) {
@@ -487,6 +576,14 @@ class MinecraftServerStatus
         return self::COLOR_NAME_MAP[strtolower($color)] ?? null;
     }
 
+    /**
+     * 规范化服务器图标 (favicon) 数据.
+     *
+     * 从服务器 ping 结果中提取 data URI 格式的 favicon，
+     * 去除换行符后返回标准格式的 data URI。
+     *
+     * @param array $info 服务器 ping 返回的 info 数据
+     */
     protected function normalizeFavicon(array $info): ?string
     {
         $favicon = $info['favicon'] ?? null;

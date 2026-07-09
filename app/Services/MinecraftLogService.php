@@ -7,16 +7,14 @@ use App\Models\Login;
 use App\Models\LoginLocation;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Log;
-use Throwable;
 
 class MinecraftLogService
 {
     private array $uuidCache = [];
 
+    private array $cachedLoginPositions = [];
+
     private const MALICIOUS_USER_PATTERN = '/^Cornbread\d+$/';
-    private const REGEX_LOGIN_POSITION = '/^\[(.*?)\] \[Server thread\/INFO\]: %s\[(.*?)\] logged in with entity id (\d+) at \(\[(.*?)\](.*?), (.*?), (.*?)\)/';
     private const REGEX_DATE_FILE = '/^(\d{4}-\d{2}-\d{2})-\d+\.log$/';
     private const REGEX_LOG_TIME = '/(\d{2}:\d{2}:\d{2})/';
 
@@ -33,10 +31,10 @@ class MinecraftLogService
     /**
      * 处理用户登录事件.
      *
-     * 创建 Login 记录，若提供日志路径则提取登录位置信息，
+     * 创建 Login 记录，若提供日志路径则尝试使用已缓存的登录位置信息。
      * 更新用户在线状态和最后登录时间。跳过恶意用户和 1 分钟内重复登录。
      */
-    public function handleLogin(string $username, ?string $uuid, Carbon $timestamp, ?string $logPath = null, ?string $currentFile = null): ?Login
+    public function handleLogin(string $username, ?string $uuid, Carbon $timestamp, ?string $logPath = null, ?string $currentFile = null, ?array $loginPosition = null): ?Login
     {
         if ($this->isMaliciousUser($username)) {
             return null;
@@ -58,8 +56,13 @@ class MinecraftLogService
             'created_at' => $timestamp,
         ]);
 
-        if ($logPath && $currentFile) {
-            $this->processLoginLocation($login, $user, $username, $logPath, $currentFile);
+        $position = $loginPosition;
+        if ($position === null && $logPath !== null && $currentFile !== null) {
+            $position = $this->pullLoginPosition($username);
+        }
+
+        if ($position !== null) {
+            $this->createLoginLocation($login, $user, $position);
         }
 
         $user->update([
@@ -130,51 +133,31 @@ class MinecraftLogService
         $dailyStat->increment('online_time', $duration);
     }
 
-    /**
-     * 从日志文件中提取用户登录时的位置信息并写入数据库.
-     *
-     * 匹配 "username logged in with entity id X at (world, x, y, z)" 格式，
-     * 提取 IP（从方括号前的地址解析）、世界名和三维坐标。
-     */
-    public function processLoginLocation(Login $login, User $user, string $username, string $logPath, string $currentFile): void
+    public function cacheLoginPosition(string $username, array $position): void
     {
-        $filePath = $logPath . '/' . $currentFile;
-        if (!File::exists($filePath)) {
-            return;
-        }
+        $this->cachedLoginPositions[$username] = $position;
+    }
 
-        $pattern = sprintf(
-            self::REGEX_LOGIN_POSITION,
-            preg_quote($username, '/'),
-        );
+    public function pullLoginPosition(string $username): ?array
+    {
+        $position = $this->cachedLoginPositions[$username] ?? null;
+        unset($this->cachedLoginPositions[$username]);
 
-        $handle = fopen($filePath, 'r');
-        if ($handle === false) {
-            return;
-        }
+        return $position;
+    }
 
-        try {
-            while (($line = fgets($handle)) !== false) {
-                if (preg_match($pattern, $line, $m)) {
-                    LoginLocation::create([
-                        'login_id' => $login->id,
-                        'user_id' => $user->id,
-                        'world' => $m[4],
-                        'x' => (float) $m[5],
-                        'y' => (float) $m[6],
-                        'z' => (float) $m[7],
-                        'entity_id' => $m[3],
-                        'ip' => trim(explode(':', $m[2])[0], '/'),
-                    ]);
-
-                    return;
-                }
-            }
-        } catch (Throwable $e) {
-            Log::warning('读取登录位置信息失败: ' . $e->getMessage());
-        } finally {
-            fclose($handle);
-        }
+    public function createLoginLocation(Login $login, User $user, array $position): void
+    {
+        LoginLocation::create([
+            'login_id' => $login->id,
+            'user_id' => $user->id,
+            'world' => $position['world'],
+            'x' => (float) $position['x'],
+            'y' => (float) $position['y'],
+            'z' => (float) $position['z'],
+            'entity_id' => $position['entity_id'],
+            'ip' => $position['ip'],
+        ]);
     }
 
     /**

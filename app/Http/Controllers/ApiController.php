@@ -6,6 +6,7 @@ use App\Http\Resources\ChatMessageResource;
 use App\Http\Resources\DailyStatResource;
 use App\Http\Resources\LoginLocationResource;
 use App\Http\Resources\LoginResource;
+use App\Http\Resources\UserResource;
 use App\Models\ChatMessage;
 use App\Models\DailyStat;
 use App\Models\Login;
@@ -27,7 +28,7 @@ class ApiController extends Controller
 
         return response()->json([
             'serverStatus' => $serverStatus,
-            'isAdmin' => Auth::check() && Auth::user()->is_admin,
+            'isAdmin' => $this->isRequestAdmin(),
         ]);
     }
 
@@ -37,7 +38,7 @@ class ApiController extends Controller
     public function isAdmin(): JsonResponse
     {
         return response()->json([
-            'isAdmin' => Auth::check() && Auth::user()->is_admin,
+            'isAdmin' => $this->isRequestAdmin(),
         ]);
     }
 
@@ -48,7 +49,11 @@ class ApiController extends Controller
      */
     public function users(Request $request): JsonResponse
     {
-        $query = User::with('loginLocations');
+        $isAdmin = $this->isRequestAdmin();
+        $query = User::query();
+        if ($isAdmin) {
+            $query->with('loginLocations');
+        }
 
         if ($request->has('search')) {
             $query->where('username', 'like', '%' . $request->search . '%');
@@ -66,10 +71,15 @@ class ApiController extends Controller
         }
 
         $users = $query->paginate(8);
+        $usersData = UserResource::collection($users->items())->toArray($request);
 
         return response()->json([
-            'paginatedData' => $users,
-            'isAdmin' => Auth::check() && Auth::user()->is_admin,
+            'paginatedData' => [
+                'data' => json_decode(json_encode($usersData), true),
+                'links' => $users->linkCollection()->toArray(),
+                'meta' => array_diff_key($users->toArray(), ['data' => true]),
+            ],
+            'isAdmin' => $isAdmin,
         ]);
     }
 
@@ -99,7 +109,7 @@ class ApiController extends Controller
                 'links' => $dailyStats->linkCollection()->toArray(),
                 'meta' => array_diff_key($dailyStats->toArray(), ['data' => true]),
             ],
-            'isAdmin' => Auth::check() && Auth::user()->is_admin,
+            'isAdmin' => $this->isRequestAdmin(),
         ]);
     }
 
@@ -129,7 +139,7 @@ class ApiController extends Controller
                 'links' => $logins->linkCollection()->toArray(),
                 'meta' => array_diff_key($logins->toArray(), ['data' => true]),
             ],
-            'isAdmin' => Auth::check() && Auth::user()->is_admin,
+            'isAdmin' => $this->isRequestAdmin(),
         ]);
     }
 
@@ -158,7 +168,7 @@ class ApiController extends Controller
                 'links' => $chatMessages->linkCollection()->toArray(),
                 'meta' => array_diff_key($chatMessages->toArray(), ['data' => true]),
             ],
-            'isAdmin' => Auth::check() && Auth::user()->is_admin,
+            'isAdmin' => $this->isRequestAdmin(),
         ]);
     }
 
@@ -188,7 +198,12 @@ class ApiController extends Controller
                 'links' => $locations->linkCollection()->toArray(),
                 'meta' => array_diff_key($locations->toArray(), ['data' => true]),
             ],
-            'isAdmin' => Auth::check() && Auth::user()->is_admin,
+            'isAdmin' => $this->isRequestAdmin(),
         ]);
+    }
+
+    private function isRequestAdmin(): bool
+    {
+        return (bool) (Auth::user()?->is_admin);
     }
 }

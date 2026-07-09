@@ -15,5 +15,6 @@ return [
         'port' => env('MINECRAFT_SERVER_PORT', 25565),
         'query_port' => env('MINECRAFT_SERVER_QUERY_PORT', 25565),
         'timeout' => (float) env('MINECRAFT_SERVER_TIMEOUT', 1),
+        'status_cache_ttl' => (int) env('MINECRAFT_SERVER_STATUS_CACHE_TTL', 10),
     ],
 ];

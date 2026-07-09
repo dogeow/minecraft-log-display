@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Login;
 use App\Models\User;
 use App\Services\MinecraftLogService;
 use Illuminate\Console\Command;
@@ -21,6 +22,9 @@ class ProcessMinecraftLogs extends Command
     private const REGEX_LOGIN = '/^\[(.*?)\] \[Craft Scheduler Thread.*?AuthMe\/INFO\]: \[AuthMe\] (.*?) logged in/';
     private const REGEX_LOGOUT = '/^\[(.*?)\] \[Server thread\/INFO\]: (.*?) left the game/';
     private const REGEX_CHAT = '/^\[(.*?)\] \[Async Chat Thread.*?\/INFO\]: \[Not Secure\] <(.*?)> (.*)/';
+    private const REGEX_LOGIN_POSITION = '/^\[(.*?)\] \[Server thread\/INFO\]: (.*?)\[(.*?)\] logged in with entity id (\d+) at \(\[(.*?)\](.*?), (.*?), (.*?)\)/';
+
+    private array $pendingLoginsForLocation = [];
 
     public function __construct(
         private readonly MinecraftLogService $logService,
@@ -124,14 +128,28 @@ class ProcessMinecraftLogs extends Command
             return;
         }
 
+        if (preg_match(self::REGEX_LOGIN_POSITION, $line, $m)) {
+            $this->applyLoginPosition($this->parseLoginPosition($m));
+
+            return;
+        }
+
         // 登录
         if (preg_match(self::REGEX_LOGIN, $line, $m)) {
             try {
                 $username = $m[2];
                 $timestamp = $this->logService->parseTimestamp($line, 'latest.log');
                 $uuid = $this->logService->findUuidFromCache($username);
+                $position = $this->logService->pullLoginPosition($username);
                 User::where('username', $username)->update(['last_login_at' => $timestamp]);
-                $this->logService->handleLogin($username, $uuid, $timestamp, $this->logPath, 'latest.log');
+                $login = $this->logService->handleLogin($username, $uuid, $timestamp, $this->logPath, 'latest.log', $position);
+
+                if ($login && $position === null) {
+                    $this->pendingLoginsForLocation[$username] = [
+                        'login_id' => $login->id,
+                        'user_id' => $login->user_id,
+                    ];
+                }
             } catch (Throwable $e) {
                 $this->error('处理登录出错: ' . $e->getMessage());
             }
@@ -148,6 +166,8 @@ class ProcessMinecraftLogs extends Command
                 if ($user) {
                     $this->logService->handleLogout($username, $timestamp);
                 }
+
+                unset($this->pendingLoginsForLocation[$username]);
             } catch (Throwable $e) {
                 $this->error('处理登出出错: ' . $e->getMessage());
             }
@@ -168,5 +188,49 @@ class ProcessMinecraftLogs extends Command
 
             return;
         }
+    }
+
+    private function parseLoginPosition(array $m): ?array
+    {
+        if (count($m) < 9) {
+            return null;
+        }
+
+        return [
+            'username' => $m[2],
+            'ip' => trim(explode(':', $m[3])[0], '/'),
+            'world' => $m[5],
+            'x' => (float) $m[6],
+            'y' => (float) $m[7],
+            'z' => (float) $m[8],
+            'entity_id' => $m[4],
+        ];
+    }
+
+    private function applyLoginPosition(?array $position): void
+    {
+        if ($position === null) {
+            return;
+        }
+
+        $username = $position['username'];
+        $this->logService->cacheLoginPosition($username, $position);
+
+        if (!isset($this->pendingLoginsForLocation[$username])) {
+            return;
+        }
+
+        $pending = $this->pendingLoginsForLocation[$username];
+        $login = Login::find($pending['login_id']);
+        $user = User::find($pending['user_id']);
+
+        if (!$login || !$user) {
+            unset($this->pendingLoginsForLocation[$username]);
+
+            return;
+        }
+
+        $this->logService->createLoginLocation($login, $user, $position);
+        unset($this->pendingLoginsForLocation[$username]);
     }
 }

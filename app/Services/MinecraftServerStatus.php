@@ -4,6 +4,7 @@ namespace App\Services;
 
 use xPaw\MinecraftPing;
 use xPaw\MinecraftQuery;
+use Illuminate\Support\Facades\Cache;
 
 class MinecraftServerStatus
 {
@@ -72,7 +73,23 @@ class MinecraftServerStatus
         $port = (int) config('minecraft.server.port');
         $queryPort = (int) config('minecraft.server.query_port');
         $timeout = (float) config('minecraft.server.timeout', 1);
+        $cacheSeconds = (int) config('minecraft.server.status_cache_ttl', 10);
 
+        if ($cacheSeconds <= 0) {
+            return $this->computeServerStatus($host, $port, $queryPort, $timeout);
+        }
+
+        $cacheKey = $this->buildCacheKey($host, $port, $queryPort, $timeout);
+
+        return Cache::remember(
+            $cacheKey,
+            now()->addSeconds($cacheSeconds),
+            fn () => $this->computeServerStatus($host, $port, $queryPort, $timeout),
+        );
+    }
+
+    protected function computeServerStatus(string $host, int $port, int $queryPort, float $timeout): array
+    {
         $this->pingConnection = [];
         $this->queryConnection = [];
 
@@ -86,6 +103,16 @@ class MinecraftServerStatus
             microtime(true) - $startedAt,
             $host,
         );
+    }
+
+    protected function buildCacheKey(string $host, int $port, int $queryPort, float $timeout): string
+    {
+        return 'minecraft-server-status:' . sha1(implode('|', [
+            $host,
+            $port,
+            $queryPort,
+            $timeout,
+        ]));
     }
 
     /**

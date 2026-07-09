@@ -9,10 +9,12 @@ class ChatMessageResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $isAdmin = $request->user()?->is_admin;
+
         return [
             'id' => $this->id,
             'username' => $this->username,
-            'content' => $this->content,
+            'content' => $isAdmin ? $this->content : null,
             'sent_at' => $this->sent_at->format('Y-m-d H:i:s'),
         ];
     }

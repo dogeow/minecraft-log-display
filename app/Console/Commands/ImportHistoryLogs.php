@@ -5,8 +5,8 @@ namespace App\Console\Commands;
 use App\Models\ChatMessage;
 use App\Models\DailyStat;
 use App\Models\Login;
-use App\Models\LoginLocation;
 use App\Models\User;
+use App\Services\MinecraftLogService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
@@ -20,25 +20,24 @@ class ImportHistoryLogs extends Command
     private array $currentLogin = [];
     private string $currentFile = '';
     private array $uuidCache = [];
-
-    /** @var array<string, array{ip: string, world: string, x: float, y: float, z: float, entity_id: string}>|null */
-    private ?array $loginPositionCache = null;
+    private array $pendingLoginsForLocation = [];
 
     private const MALICIOUS_USER_PATTERN = '/^Cornbread\d+$/';
 
     private const REGEX_UUID = '/^\[(.*?)\] \[User Authenticator.*?\]: UUID of player (.*?) is ([0-9a-f-]+)/';
     private const REGEX_LOGIN = '/^\[(.*?)\] \[Craft Scheduler Thread.*?AuthMe\/INFO\]: \[AuthMe\] (.*?) logged in/';
     private const REGEX_LOGOUT = '/^\[(.*?)\] \[Server thread\/INFO\]: (.*?) left the game/';
-    private const REGEX_SCIENTIST = '/^\[(.*?)\] \[Server thread\/WARN\]: (.*?) moved wrongly!/';
     private const REGEX_CHAT = '/^\[(.*?)\] \[Async Chat Thread.*?\/INFO\]: \[Not Secure\] <(.*?)> (.*)/';
-    private const REGEX_LOGIN_POSITION = '/^\[(.*?)\] \[Server thread\/INFO\]: %s\[(.*?)\] logged in with entity id (\d+) at \(\[(.*?)\](.*?), (.*?), (.*?)\)/';
+    private const REGEX_SCIENTIST = '/^\[(.*?)\] \[Server thread\/WARN\]: (.*?) moved wrongly!/';
+    private const REGEX_LOGIN_POSITION = '/^\[(.*?)\] \[Server thread\/INFO\]: (.*?)\[(.*?)\] logged in with entity id (\d+) at \(\[(.*?)\](.*?), (.*?), (.*?)\)/';
     private const REGEX_DATE_FILE = '/^(\d{4}-\d{2}-\d{2})-\d+\.log$/';
     private const REGEX_LOG_TIME = '/(\d{2}:\d{2}:\d{2})/';
 
     private string $logPath;
 
-    public function __construct()
-    {
+    public function __construct(
+        private readonly MinecraftLogService $logService,
+    ) {
         parent::__construct();
         $this->logPath = config('minecraft.log_path');
     }
@@ -129,6 +128,8 @@ class ImportHistoryLogs extends Command
      */
     private function processFile(string $path): void
     {
+        $this->pendingLoginsForLocation = [];
+
         $handle = fopen($path, 'r');
         if ($handle === false) {
             $this->error("无法打开文件: {$path}");
@@ -137,9 +138,7 @@ class ImportHistoryLogs extends Command
         }
 
         try {
-            $lineNumber = 0;
             while (($line = fgets($handle)) !== false) {
-                $lineNumber++;
                 $this->processLine($line);
             }
         } catch (Throwable $e) {
@@ -172,13 +171,21 @@ class ImportHistoryLogs extends Command
             return;
         }
 
+        if ($position = $this->parseLoginPosition($line)) {
+            $this->logService->cacheLoginPosition($position['username'], $position);
+            $this->applyPendingLoginLocation($position);
+
+            return;
+        }
+
         // 登录
         if (preg_match(self::REGEX_LOGIN, $line, $m)) {
             try {
                 $timestamp = $this->parseTimestamp($m[1]);
                 $username = $m[2];
                 $uuid = $this->findUuid($username);
-                $this->handleLogin($username, $uuid, $timestamp);
+                $loginPosition = $this->logService->pullLoginPosition($username);
+                $this->handleLogin($username, $uuid, $timestamp, $loginPosition);
             } catch (Throwable $e) {
                 $this->error('处理登录信息出错: ' . $e->getMessage());
             }
@@ -275,10 +282,10 @@ class ImportHistoryLogs extends Command
     /**
      * 处理用户登录事件.
      *
-     * 创建登录记录、更新用户状态，并尝试从日志中提取登录位置（IP、世界坐标等）。
+     * 创建登录记录、更新用户状态，并尝试为登录记录补充位置信息。
      * 跳过 1 分钟内的重复登录和恶意用户。
      */
-    private function handleLogin(string $username, string $uuid, Carbon $timestamp): void
+    private function handleLogin(string $username, string $uuid, Carbon $timestamp, ?array $loginPosition = null): void
     {
         if ($this->isMaliciousUser($username)) {
             return;
@@ -303,18 +310,13 @@ class ImportHistoryLogs extends Command
             'created_at' => $timestamp,
         ]);
 
-        $position = $this->findLoginPosition($username);
-        if ($position) {
-            LoginLocation::create([
+        if ($loginPosition !== null) {
+            $this->logService->createLoginLocation($login, $user, $loginPosition);
+        } else {
+            $this->pendingLoginsForLocation[$username] = [
                 'login_id' => $login->id,
                 'user_id' => $user->id,
-                'world' => $position['world'],
-                'x' => $position['x'],
-                'y' => $position['y'],
-                'z' => $position['z'],
-                'entity_id' => $position['entity_id'],
-                'ip' => $position['ip'],
-            ]);
+            ];
         }
 
         $user->update([
@@ -344,6 +346,7 @@ class ImportHistoryLogs extends Command
         $user = User::where('username', $username)->first();
         if (!$user) {
             unset($this->currentLogin[$username]);
+            unset($this->pendingLoginsForLocation[$username]);
 
             return;
         }
@@ -351,12 +354,14 @@ class ImportHistoryLogs extends Command
         $login = $user->logins()->whereNull('logout_at')->latest()->first();
         if (!$login) {
             unset($this->currentLogin[$username]);
+            unset($this->pendingLoginsForLocation[$username]);
 
             return;
         }
 
         if ($timestamp->lt($login->login_at)) {
             $this->warn("警告: {$username} 的登出时间早于登录时间，跳过");
+            unset($this->pendingLoginsForLocation[$username]);
 
             return;
         }
@@ -364,6 +369,7 @@ class ImportHistoryLogs extends Command
         $duration = $login->login_at->diffInSeconds($timestamp);
         if ($duration <= 0) {
             unset($this->currentLogin[$username]);
+            unset($this->pendingLoginsForLocation[$username]);
 
             return;
         }
@@ -384,6 +390,7 @@ class ImportHistoryLogs extends Command
         $this->info("用户 {$username} 在 {$timestamp} 登出，本次在线时长: " . gmdate('H:i:s', $duration));
 
         unset($this->currentLogin[$username]);
+        unset($this->pendingLoginsForLocation[$username]);
     }
 
     /**
@@ -420,58 +427,43 @@ class ImportHistoryLogs extends Command
         throw new \Exception('无法找到用户 ' . $username . ' 的 UUID');
     }
 
-    /**
-     * @return array{ip: string, world: string, x: float, y: float, z: float, entity_id: string}|null
-     */
-    /**
-     * 从当前日志文件中查找用户的登录位置信息.
-     *
-     * 匹配 "username logged in with entity id X at (world, x, y, z)" 格式，
-     * 返回 IP、世界坐标和实体 ID。结果会被缓存，同一文件中多次查找直接命中缓存。
-     *
-     * @return array{ip: string, world: string, x: float, y: float, z: float, entity_id: string}|null
-     */
-    private function findLoginPosition(string $username): ?array
+    private function parseLoginPosition(string $line): ?array
     {
-        if ($this->loginPositionCache !== null && isset($this->loginPositionCache[$username])) {
-            return $this->loginPositionCache[$username];
-        }
-
-        $filePath = $this->logPath . '/' . $this->currentFile;
-        if (!File::exists($filePath)) {
+        if (!preg_match(self::REGEX_LOGIN_POSITION, $line, $m)) {
             return null;
         }
 
-        $pattern = sprintf(
-            self::REGEX_LOGIN_POSITION,
-            preg_quote($username, '/'),
-        );
+        return [
+            'username' => $m[2],
+            'ip' => trim(explode(':', $m[3])[0], '/'),
+            'world' => $m[5],
+            'x' => (float) $m[6],
+            'y' => (float) $m[7],
+            'z' => (float) $m[8],
+            'entity_id' => $m[4],
+        ];
+    }
 
-        $handle = fopen($filePath, 'r');
-        if ($handle === false) {
-            return null;
+    private function applyPendingLoginLocation(array $position): void
+    {
+        $username = $position['username'];
+        if (!isset($this->pendingLoginsForLocation[$username])) {
+            return;
         }
 
-        try {
-            while (($line = fgets($handle)) !== false) {
-                if (preg_match($pattern, $line, $m)) {
-                    $this->loginPositionCache[$username] = [
-                        'ip' => trim(explode(':', $m[2])[0], '/'),
-                        'world' => $m[4],
-                        'x' => (float) $m[5],
-                        'y' => (float) $m[6],
-                        'z' => (float) $m[7],
-                        'entity_id' => $m[3],
-                    ];
+        $pending = $this->pendingLoginsForLocation[$username];
+        $login = Login::find($pending['login_id']);
+        $user = User::find($pending['user_id']);
 
-                    return $this->loginPositionCache[$username];
-                }
-            }
-        } finally {
-            fclose($handle);
+        if (!$login || !$user) {
+            unset($this->pendingLoginsForLocation[$username]);
+
+            return;
         }
 
-        return null;
+        $this->logService->createLoginLocation($login, $user, $position);
+
+        unset($this->pendingLoginsForLocation[$username]);
     }
 
     /**
@@ -483,4 +475,4 @@ class ImportHistoryLogs extends Command
     {
         return (bool) preg_match(self::MALICIOUS_USER_PATTERN, $username);
     }
-} 
+}

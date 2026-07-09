@@ -12,7 +12,7 @@ Route::get('/ping', fn () => response()->noContent(204, [
 
 // API 路由 - 返回 JSON
 Route::prefix('api')->group(function () {
-    Route::get('/server-status', [ApiController::class, 'serverStatus']);
+    Route::get('/server-status', [ApiController::class, 'serverStatus'])->middleware('throttle:30,1');
     Route::get('/is-admin', [ApiController::class, 'isAdmin']);
     Route::get('/users', [ApiController::class, 'users']);
     Route::get('/daily-stats', [ApiController::class, 'dailyStats']);

@@ -1,10 +1,11 @@
 import "./bootstrap";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import useSWR, { SWRConfig } from "swr";
-import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import Nav from "./components/Nav";
+import ApiPage from "./components/ApiPage";
 import ServerStatusPage from "./pages/ServerStatusPage";
 import UsersPage from "./pages/UsersPage";
 import DailyStatsPage from "./pages/DailyStatsPage";
@@ -12,90 +13,8 @@ import LoginsPage from "./pages/LoginsPage";
 import ChatPage from "./pages/ChatPage";
 import LoginLocationsPage from "./pages/LoginLocationsPage";
 import LoginPage from "./pages/LoginPage";
-import { Skeleton } from "./components/ui/skeleton";
 
 const fetcher = (url) => fetch(url).then((r) => r.json());
-
-function LoadingSkeleton() {
-  return (
-    <div className="container mx-auto p-4 space-y-4">
-      <Skeleton className="h-10 w-full" />
-      <Skeleton className="h-64 w-full" />
-      <Skeleton className="h-10 w-full" />
-    </div>
-  );
-}
-
-function ServerStatus() {
-  const { data, isLoading } = useSWR("/api/server-status", fetcher);
-
-  if (isLoading || !data) return <LoadingSkeleton />;
-
-  return <ServerStatusPage serverStatus={data.serverStatus} />;
-}
-
-function Users() {
-  const location = useLocation();
-  const { data, isLoading } = useSWR(`/api/users${location.search}`, fetcher);
-
-  if (isLoading || !data) return <LoadingSkeleton />;
-
-  return <UsersPage users={data.paginatedData} />;
-}
-
-function DailyStats() {
-  const location = useLocation();
-  const { data, isLoading } = useSWR(
-    `/api/daily-stats${location.search}`,
-    fetcher,
-  );
-
-  if (isLoading || !data) return <LoadingSkeleton />;
-
-  return <DailyStatsPage dailyStats={data.paginatedData} />;
-}
-
-function Logins() {
-  const location = useLocation();
-  const { data, isLoading } = useSWR(`/api/logins${location.search}`, fetcher);
-
-  if (isLoading || !data) return <LoadingSkeleton />;
-
-  return <LoginsPage logins={data.paginatedData} />;
-}
-
-function Chat() {
-  const location = useLocation();
-  const { data: adminData } = useSWR("/api/is-admin", fetcher);
-  const { data, isLoading } = useSWR(`/api/chat${location.search}`, fetcher);
-
-  if (isLoading || !data) return <LoadingSkeleton />;
-
-  return (
-    <ChatPage
-      chatMessages={data.paginatedData}
-      isAdmin={adminData?.isAdmin ?? false}
-    />
-  );
-}
-
-function LoginLocations() {
-  const location = useLocation();
-  const { data: adminData } = useSWR("/api/is-admin", fetcher);
-  const { data, isLoading } = useSWR(
-    `/api/login-locations${location.search}`,
-    fetcher,
-  );
-
-  if (isLoading || !data) return <LoadingSkeleton />;
-
-  return (
-    <LoginLocationsPage
-      locations={data.paginatedData}
-      isAdmin={adminData?.isAdmin ?? false}
-    />
-  );
-}
 
 function App() {
   return (
@@ -113,12 +32,64 @@ function AppInner() {
     <div className="min-h-screen">
       <Nav isAdmin={isAdmin} />
       <Routes>
-        <Route path="/" element={<ServerStatus />} />
-        <Route path="/users" element={<Users />} />
-        <Route path="/daily-stats" element={<DailyStats />} />
-        <Route path="/logins" element={<Logins />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/login-locations" element={<LoginLocations />} />
+        <Route
+          path="/"
+          element={
+            <ApiPage endpoint="/api/server-status">
+              {(data) => <ServerStatusPage serverStatus={data.serverStatus} />}
+            </ApiPage>
+          }
+        />
+        <Route
+          path="/users"
+          element={
+            <ApiPage endpoint="/api/users" includeSearch>
+              {(data) => <UsersPage users={data.paginatedData} />}
+            </ApiPage>
+          }
+        />
+        <Route
+          path="/daily-stats"
+          element={
+            <ApiPage endpoint="/api/daily-stats" includeSearch>
+              {(data) => <DailyStatsPage dailyStats={data.paginatedData} />}
+            </ApiPage>
+          }
+        />
+        <Route
+          path="/logins"
+          element={
+            <ApiPage endpoint="/api/logins" includeSearch>
+              {(data) => <LoginsPage logins={data.paginatedData} />}
+            </ApiPage>
+          }
+        />
+        <Route
+          path="/chat"
+          element={
+            <ApiPage endpoint="/api/chat" includeSearch>
+              {(data) => (
+                <ChatPage
+                  chatMessages={data.paginatedData}
+                  isAdmin={isAdmin}
+                />
+              )}
+            </ApiPage>
+          }
+        />
+        <Route
+          path="/login-locations"
+          element={
+            <ApiPage endpoint="/api/login-locations" includeSearch>
+              {(data) => (
+                <LoginLocationsPage
+                  locations={data.paginatedData}
+                  isAdmin={isAdmin}
+                />
+              )}
+            </ApiPage>
+          }
+        />
         <Route path="/login" element={<LoginPage />} />
       </Routes>
     </div>

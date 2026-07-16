@@ -78,4 +78,767 @@
 body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+}
+
+#app {
+    min-height: 100vh;
+}
+
+/* Minecraft server status world */
+.mc-nav {
+    position: relative;
+    z-index: 50;
+    border-bottom: 4px solid rgba(43, 87, 117, 0.55);
+    background: rgba(125, 198, 230, 0.82);
+    box-shadow: 0 4px 0 rgba(255, 255, 255, 0.2);
+}
+
+.dark .mc-nav {
+    border-bottom-color: #070d1b;
+    background: rgba(12, 23, 45, 0.92);
+    box-shadow: 0 4px 0 rgba(96, 117, 164, 0.18);
+}
+
+.mc-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+}
+
+.mc-brand__block {
+    width: 2.25rem;
+    height: 2.25rem;
+    flex: none;
+    border: 3px solid #1d3514;
+    background-image: url('/images/minecraft_grass_block_texture.jpg');
+    background-position: center top;
+    background-size: 2.5rem 2.5rem;
+    box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.28), 3px 3px 0 rgba(20, 38, 13, 0.45);
+    image-rendering: pixelated;
+}
+
+.mc-brand__copy {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+}
+
+.mc-brand__copy strong {
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Microsoft YaHei", monospace;
+    font-size: 1.35rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.3);
+}
+
+.dark .mc-brand__copy strong {
+    text-shadow: 2px 2px 0 #000;
+}
+
+.mc-brand__copy small {
+    margin-top: 0.35rem;
+    color: rgba(20, 49, 70, 0.72);
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.28em;
+}
+
+.dark .mc-brand__copy small {
+    color: #9aa9c8;
+}
+
+.mc-nav-link {
+    position: relative;
+    padding: 0.55rem 0.25rem;
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Microsoft YaHei", monospace;
+    font-size: 0.85rem;
+    text-decoration: none;
+}
+
+.mc-nav-link::after {
+    position: absolute;
+    right: 0.25rem;
+    bottom: 0.15rem;
+    left: 0.25rem;
+    height: 3px;
+    background: transparent;
+    content: "";
+}
+
+.mc-nav-link:hover::after,
+.mc-nav-link.is-active::after {
+    background: #3f7f2b;
+    box-shadow: 0 2px 0 #213d19;
+}
+
+.dark .mc-nav-link:hover::after,
+.dark .mc-nav-link.is-active::after {
+    background: #7ec850;
+}
+
+.mc-menu-button {
+    display: inline-grid;
+    width: 2.5rem;
+    height: 2.5rem;
+    place-items: center;
+    border: 3px solid #17202a;
+    border-radius: 0;
+    background: #8b8b8b;
+    box-shadow: inset 2px 2px 0 #c6c6c6, inset -2px -2px 0 #555, 3px 3px 0 rgba(0, 0, 0, 0.35);
+}
+
+.mc-mobile-menu {
+    overflow: hidden;
+    border: 3px solid #111;
+    border-radius: 0;
+    background: #3b3b3b;
+    box-shadow: inset 2px 2px 0 #666, inset -2px -2px 0 #202020, 5px 5px 0 rgba(0, 0, 0, 0.35);
+}
+
+.mc-mobile-link {
+    display: block;
+    border-bottom: 2px solid #1b1b1b;
+    padding: 0.8rem 1rem;
+    color: #f3f3f3 !important;
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Microsoft YaHei", monospace;
+    text-decoration: none;
+    text-shadow: 2px 2px 0 #111;
+}
+
+.mc-mobile-link:last-child {
+    border-bottom: 0;
+}
+
+.mc-mobile-link:hover,
+.mc-mobile-link.is-active {
+    background: #4d4d4d;
+    color: #ffff55 !important;
+}
+
+.mc-status-page {
+    min-height: calc(100vh - 4.25rem);
+    isolation: isolate;
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Microsoft YaHei", monospace;
+}
+
+.mc-world-stage {
+    position: relative;
+    min-height: calc(100vh - 4.25rem);
+    overflow: hidden;
+}
+
+.mc-sky-background {
+    position: fixed;
+    z-index: -10;
+    inset: 0;
+    transition: background-color 180ms ease;
+}
+
+.mc-sky-background--day {
+    background-color: #79c7e8;
+    background-image:
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 0 10%, transparent 10% 20%),
+        linear-gradient(to bottom, #64b8df 0%, #91d3ec 58%, #c9eaf4 100%);
+    background-size: 100% 64px, 100% 100%;
+}
+
+.mc-sky-background--night {
+    background-color: #071126;
+    background-image:
+        radial-gradient(circle at 12% 18%, #fff 0 2px, transparent 2px),
+        radial-gradient(circle at 25% 31%, #aebfe8 0 1px, transparent 2px),
+        radial-gradient(circle at 44% 13%, #fff 0 1px, transparent 2px),
+        radial-gradient(circle at 67% 25%, #dbe5ff 0 2px, transparent 2px),
+        radial-gradient(circle at 84% 14%, #fff 0 1px, transparent 2px),
+        linear-gradient(to bottom, #071126 0%, #14294b 62%, #314d69 100%);
+    background-size: 280px 220px, 240px 180px, 320px 250px, 360px 260px, 210px 170px, 100% 100%;
+}
+
+.mc-sky-decoration {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.mc-celestial {
+    position: absolute;
+    z-index: 20;
+    top: 1.5rem;
+    right: max(2rem, calc((100vw - 64rem) / 2 + 2rem));
+    width: 3.75rem;
+    height: 3.75rem;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.mc-celestial:focus-visible {
+    outline: 4px solid #fff;
+    outline-offset: 5px;
+}
+
+.mc-sun {
+    background: #ffeb3b;
+    box-shadow:
+        inset 6px 6px 0 rgba(255, 255, 255, 0.26),
+        inset -6px -6px 0 rgba(222, 157, 0, 0.24),
+        0 0 0 8px rgba(255, 230, 67, 0.18),
+        0 0 0 16px rgba(255, 230, 67, 0.08);
+}
+
+.mc-moon {
+    overflow: hidden;
+    background: #e4e5c7;
+    box-shadow:
+        inset 6px 6px 0 #f8f6dc,
+        inset -6px -6px 0 #a6a88f,
+        0 0 0 8px rgba(229, 231, 202, 0.08);
+}
+
+.mc-moon__crater {
+    position: absolute;
+    display: block;
+    background: #b9baa1;
+}
+
+.mc-moon__crater--one {
+    top: 9px;
+    right: 8px;
+    width: 11px;
+    height: 11px;
+}
+
+.mc-moon__crater--two {
+    bottom: 11px;
+    left: 9px;
+    width: 8px;
+    height: 8px;
+}
+
+.mc-moon__crater--three {
+    right: 16px;
+    bottom: 7px;
+    width: 5px;
+    height: 5px;
+}
+
+.mc-cloud {
+    --cloud: rgba(255, 255, 255, 0.88);
+    position: absolute;
+    width: 8.5rem;
+    height: 1.5rem;
+    background: var(--cloud);
+    box-shadow: 1.5rem -1rem 0 var(--cloud), 4rem -0.5rem 0 var(--cloud), 6.5rem 0.5rem 0 var(--cloud);
+}
+
+.mc-sky-decoration--night .mc-cloud {
+    --cloud: rgba(116, 139, 178, 0.2);
+}
+
+.mc-cloud--near {
+    top: 13rem;
+    left: 3%;
+    transform: scale(1.15);
+}
+
+.mc-cloud--middle {
+    top: 6rem;
+    left: 25%;
+    transform: scale(0.72);
+    opacity: 0.74;
+}
+
+.mc-cloud--far {
+    top: 20rem;
+    right: 10%;
+    transform: scale(0.58);
+    opacity: 0.56;
+}
+
+.mc-server-panel {
+    position: relative;
+    overflow: hidden;
+    border: 4px solid #101010;
+    border-radius: 0;
+    background: #2d2d2d;
+    color: #f2f2f2;
+    box-shadow:
+        inset 3px 3px 0 #5c5c5c,
+        inset -3px -3px 0 #191919,
+        8px 8px 0 rgba(25, 39, 46, 0.34);
+}
+
+.mc-server-panel__header,
+.mc-server-panel__footer {
+    display: flex;
+    min-height: 2.8rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.65rem 1rem;
+    background: #1d1d1d;
+    color: #bcbcbc;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.mc-server-panel__header {
+    border-bottom: 3px solid #0f0f0f;
+    box-shadow: inset 0 -2px 0 #353535;
+}
+
+.mc-server-panel__footer {
+    border-top: 3px solid #0f0f0f;
+    box-shadow: inset 0 2px 0 #3f3f3f;
+}
+
+.mc-server-panel__eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: #f1f1f1;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+}
+
+.mc-status-pixel {
+    width: 0.7rem;
+    height: 0.7rem;
+    flex: none;
+    background: #55ff55;
+    box-shadow: inset -2px -2px 0 #1d8f1d, 2px 2px 0 #050505;
+}
+
+.mc-server-panel--offline .mc-status-pixel {
+    background: #ff5555;
+    box-shadow: inset -2px -2px 0 #9b2020, 2px 2px 0 #050505;
+}
+
+.mc-server-version {
+    color: #ffff55;
+}
+
+.mc-server-panel--offline .mc-server-version {
+    color: #aaaaaa;
+}
+
+.mc-server-panel__body {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    min-height: 10rem;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.35rem;
+    background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 50%, transparent 50%) 0 0 / 16px 16px,
+        #303030;
+}
+
+.mc-server-icon {
+    display: grid;
+    width: 5.25rem;
+    height: 5.25rem;
+    place-items: center;
+    overflow: hidden;
+    border: 4px solid #111;
+    background:
+        linear-gradient(45deg, #3c3c3c 25%, transparent 25%) 0 0 / 16px 16px,
+        linear-gradient(45deg, transparent 75%, #3c3c3c 75%) 0 0 / 16px 16px,
+        linear-gradient(45deg, transparent 75%, #3c3c3c 75%) 8px -8px / 16px 16px,
+        linear-gradient(45deg, #3c3c3c 25%, #252525 25%) 8px -8px / 16px 16px;
+    color: #777;
+    font-size: 3rem;
+    font-weight: 900;
+    line-height: 1;
+    text-shadow: 3px 3px 0 #111;
+    box-shadow: inset 3px 3px 0 #5d5d5d, inset -3px -3px 0 #171717;
+}
+
+.mc-server-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    image-rendering: pixelated;
+}
+
+.mc-server-copy {
+    min-width: 0;
+}
+
+.mc-server-state {
+    margin-bottom: 0.45rem;
+    color: #55ff55;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-shadow: 2px 2px 0 #111;
+}
+
+.mc-server-panel--offline .mc-server-state {
+    color: #ff7777;
+}
+
+.mc-server-name {
+    margin: 0;
+    overflow-wrap: anywhere;
+    color: #fff;
+    font-size: clamp(1.25rem, 3vw, 1.8rem);
+    font-weight: 800;
+    line-height: 1.35;
+    text-shadow: 2px 2px 0 #111;
+}
+
+.mc-server-panel--offline .mc-server-name {
+    color: #f5f5f5;
+}
+
+.mc-server-endpoint {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.65rem;
+    margin-top: 0.75rem;
+    color: #aaa;
+    font-size: 0.73rem;
+    line-height: 1.4;
+    text-shadow: 1px 1px 0 #111;
+}
+
+.mc-server-connection {
+    display: flex;
+    min-width: 6.5rem;
+    align-self: stretch;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 1.05rem;
+    border-left: 2px solid #171717;
+    padding-left: 1.25rem;
+    box-shadow: -2px 0 0 #484848;
+}
+
+.mc-signal {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.35rem;
+}
+
+.mc-signal__bars {
+    position: relative;
+    display: flex;
+    height: 1.1rem;
+    align-items: flex-end;
+    gap: 3px;
+}
+
+.mc-signal__bar {
+    display: block;
+    width: 5px;
+    background: #62666f;
+    box-shadow: 1px 1px 0 #111;
+}
+
+.mc-signal__bar--active {
+    background: #55ff55;
+    box-shadow: inset -1px -1px 0 #1d9a1d, 1px 1px 0 #111;
+}
+
+.mc-signal__cross {
+    position: absolute;
+    top: -8px;
+    right: 3px;
+    color: #ff5555;
+    font-size: 1.75rem;
+    font-weight: 900;
+    line-height: 1;
+    text-shadow: 2px 2px 0 #111;
+}
+
+.mc-signal__label {
+    color: #55ff55;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-shadow: 1px 1px 0 #111;
+}
+
+.mc-signal--offline .mc-signal__label {
+    color: #ff7777;
+}
+
+.mc-player-count {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.2rem;
+}
+
+.mc-player-count strong {
+    color: #ffff55;
+    font-size: 1.05rem;
+    text-shadow: 2px 2px 0 #111;
+}
+
+.mc-player-count span {
+    color: #aaa;
+    font-size: 0.66rem;
+}
+
+.mc-server-panel--offline .mc-player-count strong {
+    color: #777;
+}
+
+.mc-notice {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    gap: 0.9rem;
+    margin-top: 1.5rem;
+    border: 4px solid #151515;
+    padding: 1rem 1.1rem;
+    background: #353535;
+    color: #efefef;
+    box-shadow: inset 3px 3px 0 #5b5b5b, inset -3px -3px 0 #1f1f1f, 6px 6px 0 rgba(25, 39, 46, 0.26);
+    text-shadow: 1px 1px 0 #111;
+}
+
+.mc-notice--offline {
+    border-left: 9px solid #b33131;
+}
+
+.mc-notice--warning {
+    border-left: 9px solid #d18a25;
+}
+
+.mc-notice__icon {
+    display: grid;
+    width: 1.75rem;
+    height: 1.75rem;
+    place-items: center;
+    background: #ff5555;
+    color: #fff;
+    font-weight: 900;
+    box-shadow: inset -3px -3px 0 #9e2424, 2px 2px 0 #111;
+}
+
+.mc-notice--warning .mc-notice__icon {
+    background: #ffaa00;
+    box-shadow: inset -3px -3px 0 #9c6200, 2px 2px 0 #111;
+}
+
+.mc-notice strong {
+    display: block;
+    color: #fff;
+    font-size: 0.92rem;
+}
+
+.mc-notice p {
+    margin: 0.4rem 0 0;
+    color: #c8c8c8;
+    font-size: 0.76rem;
+    line-height: 1.65;
+}
+
+.mc-player-section {
+    margin-top: 2rem;
+    border: 4px solid #151515;
+    padding: 1rem;
+    background: rgba(41, 41, 41, 0.92);
+    box-shadow: inset 3px 3px 0 #5b5b5b, inset -3px -3px 0 #1f1f1f, 6px 6px 0 rgba(25, 39, 46, 0.26);
+}
+
+.mc-player-section h2 {
+    margin: 0 0 1rem;
+    color: #ffff55;
+    font-size: 0.92rem;
+    text-align: center;
+    text-shadow: 2px 2px 0 #111;
+}
+
+.mc-player-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.mc-player-card {
+    min-width: 5.25rem;
+    border: 3px solid #111;
+    padding: 0.65rem;
+    background: #424242;
+    color: #fff;
+    font-size: 0.72rem;
+    text-align: center;
+    text-shadow: 1px 1px 0 #111;
+    box-shadow: inset 2px 2px 0 #686868, inset -2px -2px 0 #242424;
+}
+
+.mc-player-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    margin: 0 auto 0.45rem;
+    image-rendering: pixelated;
+}
+
+.mc-ground {
+    position: fixed;
+    z-index: 100;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 5rem;
+    border-top: 4px solid #24441c;
+    background-color: #6d4a34;
+    background-image: url('/images/minecraft_grass_block_texture.jpg');
+    background-position: center top;
+    background-repeat: repeat;
+    background-size: 10rem 10rem;
+    box-shadow: 0 -4px 0 rgba(108, 180, 67, 0.42);
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+
+.mc-standing-players {
+    position: fixed;
+    z-index: 99;
+    right: 0;
+    bottom: 4.85rem;
+    left: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.mc-standing-player {
+    height: 6rem;
+    margin: 0 0.2rem;
+    filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.45));
+    image-rendering: pixelated;
+}
+
+@media (max-width: 640px) {
+    .mc-brand__copy strong {
+        font-size: 1.1rem;
+    }
+
+    .mc-brand__copy small {
+        display: none;
+    }
+
+    .mc-celestial {
+        top: 1rem;
+        right: 1.5rem;
+        width: 2.8rem;
+        height: 2.8rem;
+    }
+
+    .mc-cloud--near {
+        top: 16rem;
+        left: -2rem;
+        transform: scale(0.75);
+    }
+
+    .mc-cloud--middle {
+        top: 7.5rem;
+        left: 12%;
+        transform: scale(0.5);
+    }
+
+    .mc-cloud--far {
+        top: 27rem;
+        right: -3rem;
+    }
+
+    .mc-server-panel {
+        box-shadow: inset 3px 3px 0 #5c5c5c, inset -3px -3px 0 #191919, 5px 5px 0 rgba(25, 39, 46, 0.3);
+    }
+
+    .mc-server-panel__header,
+    .mc-server-panel__footer {
+        padding-right: 0.75rem;
+        padding-left: 0.75rem;
+    }
+
+    .mc-server-panel__body {
+        grid-template-columns: 4.25rem minmax(0, 1fr);
+        gap: 0.9rem;
+        padding: 1rem;
+    }
+
+    .mc-server-icon {
+        width: 4.25rem;
+        height: 4.25rem;
+        font-size: 2.3rem;
+    }
+
+    .mc-server-name {
+        font-size: 1.1rem;
+    }
+
+    .mc-server-endpoint {
+        font-size: 0.66rem;
+    }
+
+    .mc-server-connection {
+        grid-column: 1 / -1;
+        min-width: 0;
+        align-self: auto;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        border-top: 2px solid #171717;
+        border-left: 0;
+        padding-top: 0.9rem;
+        padding-left: 0;
+        box-shadow: 0 -2px 0 #484848;
+    }
+
+    .mc-signal,
+    .mc-player-count {
+        align-items: flex-start;
+    }
+
+    .mc-player-count {
+        align-items: flex-end;
+    }
+
+    .mc-server-panel__footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.35rem;
+    }
+
+    .mc-notice {
+        gap: 0.7rem;
+        padding: 0.85rem;
+    }
+
+    .mc-ground {
+        height: 4rem;
+        background-size: 8rem 8rem;
+    }
+
+    .mc-standing-players {
+        bottom: 3.85rem;
+    }
+
+    .mc-standing-player {
+        height: 4.5rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mc-sky-background {
+        transition: none;
+    }
 }

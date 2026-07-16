@@ -20,18 +20,24 @@ export default function Nav({ isAdmin }) {
     theme === "dark" ? "hover:text-gray-200" : "hover:text-gray-600";
 
   return (
-    <nav>
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center py-3">
+    <nav className="mc-nav">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
+        <div className="flex flex-col py-3 md:flex-row md:items-center md:justify-between">
           {/* Title row */}
-          <div className="flex justify-between items-center w-full">
-            <Link to="/" className={`text-xl font-bold ${textColor}`}>
-              我的世界
+          <div className="flex items-center justify-between md:w-auto">
+            <Link to="/" className={`mc-brand ${textColor}`}>
+              <span className="mc-brand__block" aria-hidden="true" />
+              <span className="mc-brand__copy">
+                <strong>我的世界</strong>
+                <small>服务器档案</small>
+              </span>
             </Link>
             {isAdmin && (
               <button
-                className={`md:hidden rounded-lg focus:outline-none ${textColor} p-1`}
+                className={`mc-menu-button md:hidden ${textColor}`}
                 onClick={() => setMenuOpen((v) => !v)}
+                aria-expanded={menuOpen}
+                aria-label={menuOpen ? "关闭导航菜单" : "打开导航菜单"}
               >
                 {menuOpen ? (
                   <svg
@@ -67,7 +73,7 @@ export default function Nav({ isAdmin }) {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`${textColor} ${hoverColor} ${location.pathname === link.path ? "font-semibold" : ""}`}
+                  className={`mc-nav-link ${textColor} ${hoverColor} ${location.pathname === link.path ? "is-active" : ""}`}
                 >
                   {link.label}
                 </Link>
@@ -86,7 +92,7 @@ export default function Nav({ isAdmin }) {
                   });
                   window.location.href = "/";
                 }}
-                className={`${textColor} ${hoverColor} cursor-pointer`}
+                className={`mc-nav-link ${textColor} ${hoverColor}`}
               >
                 退出登录
               </a>
@@ -95,13 +101,13 @@ export default function Nav({ isAdmin }) {
 
           {/* Mobile dropdown */}
           {isAdmin && menuOpen && (
-            <div className="mt-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden backdrop-blur-sm">
+            <div className="mc-mobile-menu mt-3">
               {navLinks.map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
                   onClick={() => setMenuOpen(false)}
-                  className={`block px-4 py-3 ${textColor} ${hoverColor} ${location.pathname === link.path ? "font-semibold" : ""} border-b border-gray-200 dark:border-gray-700 last:border-b-0`}
+                  className={`mc-mobile-link ${textColor} ${hoverColor} ${location.pathname === link.path ? "is-active" : ""}`}
                 >
                   {link.label}
                 </Link>
@@ -114,7 +120,7 @@ export default function Nav({ isAdmin }) {
                   await fetch("/logout", { method: "POST" });
                   window.location.href = "/";
                 }}
-                className={`block px-4 py-3 ${textColor} ${hoverColor} cursor-pointer`}
+                className={`mc-mobile-link ${textColor} ${hoverColor}`}
               >
                 退出登录
               </a>

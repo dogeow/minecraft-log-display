@@ -1,69 +1,66 @@
-import { Card, CardContent } from "../ui/card";
 import LatencyIndicator from "./LatencyIndicator";
 
-export default function ServerOverview({ serverStatus, latency, isDark }) {
-  const textPrimary = isDark ? "text-[#FFAA00]" : "text-yellow-600";
-  const textMuted = isDark ? "text-[#AAAAAA]" : "text-gray-500";
-  const lightCard = !isDark ? "bg-white/95" : "";
+export default function ServerOverview({ serverStatus }) {
+  const isOnline = serverStatus.is_online;
+  const softwareLabel = [serverStatus.server_flavor, serverStatus.software]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
-    <div
-      className={`relative mx-auto max-w-3xl ${!isDark ? "rounded-xl bg-white/80 shadow-lg" : ""}`}
+    <section
+      className={`mc-server-panel ${isOnline ? "mc-server-panel--online" : "mc-server-panel--offline"}`}
+      aria-label="Minecraft 服务器状态"
     >
-      <Card
-        className={`overflow-hidden rounded-b-none rounded-t-xl border-b-0 ${lightCard}`}
-      >
-        <div
-          className={`flex min-h-10 items-center border-b px-4 py-2 text-sm ${isDark ? "bg-black/30" : "bg-white"} ${textPrimary}`}
-        >
-          {serverStatus.version}
+      <header className="mc-server-panel__header">
+        <div className="mc-server-panel__eyebrow">
+          <span className="mc-status-pixel" aria-hidden="true" />
+          世界状态
         </div>
-      </Card>
+        <div className="mc-server-version">{serverStatus.version}</div>
+      </header>
 
-      <Card className={`rounded-none border-x ${lightCard}`}>
-        <CardContent className="flex items-start gap-4 p-4">
-          <div className="flex w-16 shrink-0 flex-col items-center">
-            {serverStatus.favicon ? (
-              <img
-                src={serverStatus.favicon}
-                className="h-16 w-16 rounded-sm border"
-                alt="Server favicon"
-              />
-            ) : (
-              <div
-                className={`h-16 w-16 rounded-sm border ${isDark ? "bg-black/30" : "bg-muted"}`}
-              />
-            )}
-          </div>
-
-          <div className="flex min-w-0 flex-1 items-start justify-between gap-4">
-            <div
-              className="min-w-0 flex-1 pt-1 text-base leading-tight tracking-tight"
-              dangerouslySetInnerHTML={{ __html: serverStatus.motd_html }}
-            />
-
-            <div className="flex shrink-0 flex-col items-end gap-2 self-start pt-1 text-right">
-              <LatencyIndicator latency={latency} />
-              <div className={`text-xs leading-none ${textPrimary}`}>
-                {serverStatus.online_players} / {serverStatus.max_players}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card
-        className={`overflow-hidden rounded-b-xl rounded-t-none border-t-0 ${lightCard}`}
-      >
-        <div
-          className={`flex min-h-10 items-center justify-between gap-4 px-4 py-2 text-sm ${textMuted}`}
-        >
-          <div className="min-w-0 truncate">
-            {serverStatus.server_flavor} {serverStatus.software}
-          </div>
-          <div className="shrink-0">查询用时 {serverStatus.timer} 秒</div>
+      <div className="mc-server-panel__body">
+        <div className="mc-server-icon">
+          {serverStatus.favicon ? (
+            <img src={serverStatus.favicon} alt="服务器图标" />
+          ) : (
+            <span aria-label="没有服务器图标">?</span>
+          )}
         </div>
-      </Card>
-    </div>
+
+        <div className="mc-server-copy">
+          <div className="mc-server-state">
+            {isOnline ? "世界可进入" : "世界暂时不可进入"}
+          </div>
+          <h1
+            className="mc-server-name"
+            dangerouslySetInnerHTML={{ __html: serverStatus.motd_html }}
+          />
+          <div className="mc-server-endpoint">
+            <span>{serverStatus.display_subtitle}</span>
+            <span aria-hidden="true">•</span>
+            <span>{serverStatus.endpoint}</span>
+          </div>
+        </div>
+
+        <div className="mc-server-connection">
+          <LatencyIndicator
+            latency={serverStatus.ping_latency_ms}
+            isOnline={isOnline}
+          />
+          <div className="mc-player-count" aria-label="在线玩家">
+            <strong>
+              {serverStatus.online_players} / {serverStatus.max_players}
+            </strong>
+            <span>在线玩家</span>
+          </div>
+        </div>
+      </div>
+
+      <footer className="mc-server-panel__footer">
+        <span>{softwareLabel || "未知服务端"}</span>
+        <span>探测用时 {serverStatus.timer} 秒</span>
+      </footer>
+    </section>
   );
 }

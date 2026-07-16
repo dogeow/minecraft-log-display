@@ -1,27 +1,45 @@
-export default function StatusNotices({ serverStatus, isDark }) {
-  return (
-    <>
-      {serverStatus.errors?.length > 0 && (
-        <div className="mx-auto mt-6 max-w-3xl space-y-3">
-          {serverStatus.errors.map((error, index) => (
-            <div
-              key={index}
-              className={`rounded-lg border border-yellow-400/30 bg-yellow-300/10 px-4 py-3 text-sm ${isDark ? "text-yellow-100" : "text-yellow-700"}`}
-            >
-              {error}
-            </div>
-          ))}
+export default function StatusNotices({ serverStatus }) {
+  if (!serverStatus.is_online) {
+    return (
+      <div className="mc-notice mc-notice--offline" role="status">
+        <span className="mc-notice__icon" aria-hidden="true">
+          !
+        </span>
+        <div>
+          <strong>服务器暂时离线</strong>
+          <p>无法进入这个世界。请确认 Minecraft 服务已启动后再刷新页面。</p>
         </div>
-      )}
+      </div>
+    );
+  }
 
-      {serverStatus.query_unavailable && (
-        <div
-          className={`mx-auto mt-6 max-w-3xl rounded-lg border border-sky-400/30 bg-sky-300/10 px-4 py-3 text-sm ${isDark ? "text-sky-100" : "text-sky-700"}`}
-        >
-          服务器在线，但 Query
-          协议未响应，因此玩家列表和部分详细字段可能不完整。
+  if (serverStatus.query_unavailable) {
+    return (
+      <div className="mc-notice mc-notice--warning" role="status">
+        <span className="mc-notice__icon" aria-hidden="true">
+          !
+        </span>
+        <div>
+          <strong>世界在线，详细信息暂不可用</strong>
+          <p>Query 未响应，玩家列表、服务端类型等字段可能不完整。</p>
         </div>
-      )}
-    </>
+      </div>
+    );
+  }
+
+  const uniqueErrors = [...new Set(serverStatus.errors ?? [])];
+
+  if (uniqueErrors.length === 0) return null;
+
+  return (
+    <div className="mc-notice mc-notice--warning" role="status">
+      <span className="mc-notice__icon" aria-hidden="true">
+        !
+      </span>
+      <div>
+        <strong>部分状态获取失败</strong>
+        <p>{uniqueErrors.join("；")}</p>
+      </div>
+    </div>
   );
 }

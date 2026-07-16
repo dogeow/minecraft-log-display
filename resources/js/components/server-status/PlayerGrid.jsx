@@ -1,23 +1,21 @@
-export default function PlayerGrid({ players = [], isDark }) {
+export default function PlayerGrid({ players = [] }) {
   if (players.length === 0) return null;
 
   return (
-    <div className="mt-8">
-      <div className="flex flex-wrap content-center justify-center gap-2">
+    <section className="mc-player-section" aria-labelledby="online-players-title">
+      <h2 id="online-players-title">在线冒险家</h2>
+      <div className="mc-player-grid">
         {players.map((player) => (
-          <div
-            key={player}
-            className={`m-1 flex flex-col gap-1 rounded-lg border p-2 backdrop-blur ${isDark ? "border-[#FFAA00] bg-white/10" : "border-yellow-400 bg-gray-100"}`}
-          >
+          <div key={player} className="mc-player-card">
             <img
               src={`https://minotar.net/cube/${player}/64.png`}
-              className="mx-auto h-8 w-8"
+              className="mc-player-avatar"
               alt={`${player} cube`}
             />
-            <div className="text-center text-sm">{player}</div>
+            <div>{player}</div>
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }

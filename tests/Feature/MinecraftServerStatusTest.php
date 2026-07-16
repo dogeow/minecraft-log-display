@@ -53,6 +53,7 @@ class MinecraftServerStatusTest extends TestCase
         $status = $service->getServerStatus();
 
         $this->assertTrue($status['is_online']);
+        $this->assertGreaterThanOrEqual(1, $status['ping_latency_ms']);
         $this->assertTrue($status['query_available']);
         $this->assertSame("4B 欢迎来玩⛏\n4T QQ群162436048", $status['display_name']);
         $this->assertSame('服务器在线', $status['display_subtitle']);
@@ -178,15 +179,53 @@ class MinecraftServerStatusTest extends TestCase
         $this->assertStringContainsString('color: #55FF55', $status['motd_html']);
         $this->assertStringContainsString('color: #55FFFF', $status['motd_html']);
     }
+
+    public function test_it_returns_one_coherent_offline_state_and_skips_query(): void
+    {
+        config([
+            'minecraft.server.ip' => 'offline.example.com',
+            'minecraft.server.port' => 25565,
+            'minecraft.server.query_port' => 25565,
+            'minecraft.server.timeout' => 1,
+            'minecraft.server.status_cache_ttl' => 0,
+        ]);
+
+        $service = new FakeMinecraftServerStatus(
+            [
+                'info' => [],
+                'error' => '服务器 Ping 不可用',
+            ],
+            [
+                'info' => [],
+                'players' => [],
+                'error' => '服务器 Query 不可用',
+            ]
+        );
+
+        $status = $service->getServerStatus();
+
+        $this->assertFalse($status['is_online']);
+        $this->assertNull($status['ping_latency_ms']);
+        $this->assertFalse($status['query_available']);
+        $this->assertFalse($status['query_unavailable']);
+        $this->assertSame('未知世界', $status['display_name']);
+        $this->assertSame('未知世界', $status['motd_html']);
+        $this->assertSame('未知版本', $status['version']);
+        $this->assertSame('未知服务端', $status['server_flavor']);
+        $this->assertSame('', $status['software']);
+        $this->assertSame(['服务器 Ping 不可用'], $status['errors']);
+        $this->assertSame(0, $service->queryServerCallCount);
+    }
 }
 
 class FakeMinecraftServerStatus extends MinecraftServerStatus
 {
+    public int $queryServerCallCount = 0;
+
     public function __construct(
         private readonly array $pingResult,
         private readonly array $queryResult,
-    ) {
-    }
+    ) {}
 
     protected function pingServer(string $host, int $port, float $timeout): array
     {
@@ -195,6 +234,8 @@ class FakeMinecraftServerStatus extends MinecraftServerStatus
 
     protected function queryServer(string $host, int $port, float $timeout): array
     {
+        $this->queryServerCallCount++;
+
         return $this->queryResult;
     }
 }

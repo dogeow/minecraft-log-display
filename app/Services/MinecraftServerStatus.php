@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Cache;
 use xPaw\MinecraftPing;
 use xPaw\MinecraftQuery;
-use Illuminate\Support\Facades\Cache;
 
 class MinecraftServerStatus
 {
@@ -94,8 +94,21 @@ class MinecraftServerStatus
         $this->queryConnection = [];
 
         $startedAt = microtime(true);
+        $pingStartedAt = microtime(true);
         $pingResult = $this->pingServer($host, $port, $timeout);
-        $queryResult = $this->queryServer($host, $queryPort, $timeout);
+        $pingResult['latency_ms'] = ($pingResult['error'] ?? null) === null
+            ? max(1, (int) round((microtime(true) - $pingStartedAt) * 1000))
+            : null;
+
+        // Query 依赖服务器已能通过 Minecraft Ping 连接。离线时继续探测只会
+        // 增加等待时间，并生成一条没有额外价值的 Query 错误。
+        $queryResult = ($pingResult['error'] ?? null) === null
+            ? $this->queryServer($host, $queryPort, $timeout)
+            : [
+                'info' => [],
+                'players' => [],
+                'error' => null,
+            ];
 
         return $this->buildServerStatus(
             $pingResult,
@@ -107,7 +120,7 @@ class MinecraftServerStatus
 
     protected function buildCacheKey(string $host, int $port, int $queryPort, float $timeout): string
     {
-        return 'minecraft-server-status:' . sha1(implode('|', [
+        return 'minecraft-server-status:'.sha1(implode('|', [
             $host,
             $port,
             $queryPort,
@@ -142,10 +155,15 @@ class MinecraftServerStatus
                 $info = $ping->QueryOldPre17();
             }
 
-            $result = [
-                'info' => is_array($info) ? $info : [],
-                'error' => null,
-            ];
+            $result = is_array($info)
+                ? [
+                    'info' => $info,
+                    'error' => null,
+                ]
+                : [
+                    'info' => [],
+                    'error' => '服务器 Ping 不可用',
+                ];
         } catch (\Throwable) {
             $result = [
                 'info' => [],
@@ -183,11 +201,17 @@ class MinecraftServerStatus
             $info = $query->GetInfo();
             $players = $query->GetPlayers();
 
-            $result = [
-                'info' => is_array($info) ? $info : [],
-                'players' => is_array($players) ? array_values($players) : [],
-                'error' => null,
-            ];
+            $result = is_array($info)
+                ? [
+                    'info' => $info,
+                    'players' => is_array($players) ? array_values($players) : [],
+                    'error' => null,
+                ]
+                : [
+                    'info' => [],
+                    'players' => [],
+                    'error' => '服务器 Query 不可用',
+                ];
         } catch (\Throwable) {
             $result = [
                 'info' => [],
@@ -206,15 +230,20 @@ class MinecraftServerStatus
      *
      * 优先使用 Query 数据，Ping 数据作为补充填充缺失字段（如版本、在线人数等）。
      *
-     * @param array{info: mixed, error: string|null} $pingResult Ping 查询结果
-     * @param array{info: mixed, players: mixed, error: string|null} $queryResult Query 查询结果
+     * @param  array{info: mixed, error: string|null}  $pingResult  Ping 查询结果
+     * @param  array{info: mixed, players: mixed, error: string|null}  $queryResult  Query 查询结果
      */
     protected function buildServerStatus(array $pingResult, array $queryResult, float $elapsed, string $host): array
     {
         $info = is_array($pingResult['info'] ?? null) ? $pingResult['info'] : [];
         $queryInfo = is_array($queryResult['info'] ?? null) ? $queryResult['info'] : [];
-        $players = is_array($queryResult['players'] ?? null) ? array_values($queryResult['players']) : [];
-        $queryAvailable = ($queryResult['error'] ?? null) === null;
+        $pingError = $pingResult['error'] ?? null;
+        $queryError = $queryResult['error'] ?? null;
+        $isOnline = $pingError === null;
+        $queryAvailable = $isOnline && $queryError === null;
+        $players = $queryAvailable && is_array($queryResult['players'] ?? null)
+            ? array_values($queryResult['players'])
+            : [];
 
         $normalizedQueryInfo = array_merge([
             'GameName' => '未知',
@@ -244,8 +273,24 @@ class MinecraftServerStatus
             $normalizedQueryInfo['HostName'] !== '未知' ? (string) $normalizedQueryInfo['HostName'] : '',
         );
 
-        $pingError = $pingResult['error'] ?? null;
-        $queryError = $queryResult['error'] ?? null;
+        if (! $isOnline) {
+            $motd = [
+                'plain' => '未知世界',
+                'html' => '未知世界',
+            ];
+        }
+
+        $errors = ! $isOnline
+            ? array_values(array_filter([$pingError]))
+            : array_values(array_filter([$queryError]));
+
+        $serverFlavor = $queryAvailable
+            ? (empty($normalizedQueryInfo['Plugins']) ? '原版服务器' : 'Mod 服务器')
+            : '未知服务端';
+
+        $software = $queryAvailable
+            ? ($normalizedQueryInfo['Software'] !== '' ? (string) $normalizedQueryInfo['Software'] : 'Vanilla')
+            : '';
 
         return [
             'info' => $info,
@@ -253,18 +298,17 @@ class MinecraftServerStatus
             'players' => $players,
             'timer' => number_format($elapsed, 4, '.', ''),
             'favicon' => $this->normalizeFavicon($info),
-            'is_online' => $pingError === null,
+            'is_online' => $isOnline,
+            'ping_latency_ms' => $isOnline ? ($pingResult['latency_ms'] ?? null) : null,
             'query_available' => $queryAvailable,
-            'query_unavailable' => !$queryAvailable && $pingError === null,
-            'errors' => array_values(array_filter([$pingError, $queryError])),
+            'query_unavailable' => $isOnline && ! $queryAvailable,
+            'errors' => $errors,
             'display_name' => $motd['plain'],
-            'display_subtitle' => $pingError === null ? '服务器在线' : '服务器离线或不可访问',
+            'display_subtitle' => $isOnline ? '服务器在线' : '服务器离线或不可访问',
             'motd_html' => $motd['html'],
-            'version' => (string) $normalizedQueryInfo['Version'],
-            'server_flavor' => empty($normalizedQueryInfo['Plugins']) ? '原版服务器' : 'Mod 服务器',
-            'software' => $normalizedQueryInfo['Software'] !== ''
-                ? (string) $normalizedQueryInfo['Software']
-                : ($queryAvailable ? 'Vanilla' : 'Query 不可用'),
+            'version' => $isOnline ? (string) $normalizedQueryInfo['Version'] : '未知版本',
+            'server_flavor' => $serverFlavor,
+            'software' => $software,
             'game_mode' => match ($normalizedQueryInfo['GameType']) {
                 'SMP' => '多人游戏',
                 '' => '未知',
@@ -279,8 +323,8 @@ class MinecraftServerStatus
     /**
      * 构建 MOTD (Message of the Day) 的纯文本和 HTML 两个版本.
      *
-     * @param mixed $description 服务器 MOTD 原始数据，支持新旧两种 JSON 格式
-     * @param string $hostName 服务器名称（当 description 为空时作为后备）
+     * @param  mixed  $description  服务器 MOTD 原始数据，支持新旧两种 JSON 格式
+     * @param  string  $hostName  服务器名称（当 description 为空时作为后备）
      * @return array{plain: string, html: string} plain 为纯文本，html 为带样式的 HTML
      */
     protected function buildMotd(mixed $description, string $hostName): array
@@ -315,8 +359,8 @@ class MinecraftServerStatus
      * - 新格式 (1.7+)：JSON TextComponent，包含 text/translate/extra 等字段
      * - 旧格式：纯字符串或包含 legacy 字段的对象
      *
-     * @param mixed $description MOTD 原始数据
-     * @param array|null $parentStyle 继承自父级的样式（用于递归传递）
+     * @param  mixed  $description  MOTD 原始数据
+     * @param  array|null  $parentStyle  继承自父级的样式（用于递归传递）
      * @return array<int, array{text: string, style: array{color: ?string, bold: bool, italic: bool, underlined: bool, strikethrough: bool, obfuscated: bool}}>
      */
     protected function extractMinecraftFragments(mixed $description, ?array $parentStyle = null): array
@@ -364,8 +408,8 @@ class MinecraftServerStatus
      * 处理 Minecraft 遗留的颜色代码和格式代码（如 §c 表示红色、§l 表示加粗），
      * 以及 §xRRGGBB 十六进制颜色格式。将文本拆分为带样式的片段列表。
      *
-     * @param string $text 包含 § 代码的原始文本
-     * @param array|null $baseStyle 继承的基础样式
+     * @param  string  $text  包含 § 代码的原始文本
+     * @param  array|null  $baseStyle  继承的基础样式
      * @return array<int, array{text: string, style: array{color: ?string, bold: bool, italic: bool, underlined: bool, strikethrough: bool, obfuscated: bool}}>
      */
     protected function parseLegacyMinecraftText(string $text, ?array $baseStyle = null): array
@@ -429,9 +473,9 @@ class MinecraftServerStatus
      * Minecraft 1.16+ 支持 §x§R§R§G§G§B§B 格式的十六进制颜色，
      * 例如 §x§F§F§0§0§0§0 表示黑色 #FF0000。
      *
-     * @param array<int, string> $chars 文本字符数组
-     * @param int $index 当前 § 符号的索引位置
-     * @param int $charCount 字符数组总长度
+     * @param  array<int, string>  $chars  文本字符数组
+     * @param  int  $index  当前 § 符号的索引位置
+     * @param  int  $charCount  字符数组总长度
      * @return string|null 解析出的十六进制颜色（如 #FF0000）或 null（非十六进制颜色序列）
      */
     private function parseHexColor(array $chars, int $index, int $charCount): ?string
@@ -445,14 +489,14 @@ class MinecraftServerStatus
             $sectionIndex = $index + 2 + ($hexIndex * 2);
             $digitIndex = $sectionIndex + 1;
 
-            if (($chars[$sectionIndex] ?? null) !== '§' || !ctype_xdigit($chars[$digitIndex] ?? '')) {
+            if (($chars[$sectionIndex] ?? null) !== '§' || ! ctype_xdigit($chars[$digitIndex] ?? '')) {
                 return null;
             }
 
             $hexDigits .= $chars[$digitIndex];
         }
 
-        return '#' . strtoupper($hexDigits);
+        return '#'.strtoupper($hexDigits);
     }
 
     /**
@@ -463,8 +507,8 @@ class MinecraftServerStatus
      * - 十六进制颜色 §#RRGGBB
      * - 格式代码 §k(乱码) §l(加粗) §m(删除线) §n(下划线) §o(斜体) §r(重置)
      *
-     * @param array $style 当前样式数组
-     * @param string $code 单字符格式代码或十六进制颜色
+     * @param  array  $style  当前样式数组
+     * @param  string  $code  单字符格式代码或十六进制颜色
      */
     protected function applyLegacyFormattingCode(array $style, string $code): array
     {
@@ -490,8 +534,8 @@ class MinecraftServerStatus
     /**
      * 将 JSON TextComponent 中的样式属性应用到当前样式.
      *
-     * @param array $style 当前继承的样式
-     * @param array $component JSON TextComponent 节点，包含 color/bold/italic 等属性
+     * @param  array  $style  当前继承的样式
+     * @param  array  $component  JSON TextComponent 节点，包含 color/bold/italic 等属性
      */
     protected function applyComponentStyle(array $style, array $component): array
     {
@@ -517,7 +561,7 @@ class MinecraftServerStatus
      * 每个片段根据其样式生成对应的 CSS 并包裹在 <span> 标签中，
      * 支持颜色、加粗、斜体、下划线、删除线、乱码效果。
      *
-     * @param array $fragments 文本片段列表，每项包含 text 和 style
+     * @param  array  $fragments  文本片段列表，每项包含 text 和 style
      */
     protected function renderMinecraftFragmentsAsHtml(array $fragments): string
     {
@@ -552,14 +596,14 @@ class MinecraftServerStatus
     /**
      * 根据样式属性构建 CSS 样式字符串.
      *
-     * @param array $style 样式属性数组，包含 color/bold/italic/underlined/strikethrough/obfuscated
+     * @param  array  $style  样式属性数组，包含 color/bold/italic/underlined/strikethrough/obfuscated
      */
     private function buildFragmentCss(array $style): string
     {
         $parts = [];
 
         if ($style['color'] !== null) {
-            $parts[] = 'color: ' . $style['color'];
+            $parts[] = 'color: '.$style['color'];
         }
         if ($style['bold']) {
             $parts[] = 'font-weight: 700';
@@ -576,7 +620,7 @@ class MinecraftServerStatus
             $decorations[] = 'line-through';
         }
         if ($decorations !== []) {
-            $parts[] = 'text-decoration: ' . implode(' ', $decorations);
+            $parts[] = 'text-decoration: '.implode(' ', $decorations);
         }
 
         if ($style['obfuscated']) {
@@ -592,7 +636,7 @@ class MinecraftServerStatus
      * 支持 named colors (如 'red', 'dark_blue') 和已格式化的 hex (如 '#FF5555')。
      * 如果颜色格式无效或不在已知颜色映射中则返回 null。
      *
-     * @param string $color Minecraft 颜色名或十六进制颜色值
+     * @param  string  $color  Minecraft 颜色名或十六进制颜色值
      */
     protected function resolveMinecraftColor(string $color): ?string
     {
@@ -609,12 +653,12 @@ class MinecraftServerStatus
      * 从服务器 ping 结果中提取 data URI 格式的 favicon，
      * 去除换行符后返回标准格式的 data URI。
      *
-     * @param array $info 服务器 ping 返回的 info 数据
+     * @param  array  $info  服务器 ping 返回的 info 数据
      */
     protected function normalizeFavicon(array $info): ?string
     {
         $favicon = $info['favicon'] ?? null;
-        if (!is_string($favicon) || $favicon === '' || !str_starts_with($favicon, 'data:image/')) {
+        if (! is_string($favicon) || $favicon === '' || ! str_starts_with($favicon, 'data:image/')) {
             return null;
         }
 

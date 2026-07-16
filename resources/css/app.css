@@ -726,9 +726,9 @@ body {
 
     .mc-server-panel__body {
         grid-template-areas:
-            ". icon connection ."
-            "copy copy copy copy";
-        grid-template-columns: minmax(0, 1fr) 4rem auto minmax(0, 1fr);
+            "icon . connection"
+            "copy copy copy";
+        grid-template-columns: 4rem minmax(0, 1fr) auto;
         min-height: 0;
         align-items: center;
         gap: 0.7rem 0;
@@ -764,9 +764,9 @@ body {
     .mc-server-connection {
         display: flex;
         grid-area: connection;
-        min-width: 6rem;
+        min-width: 8.5rem;
         align-self: center;
-        align-items: flex-end;
+        align-items: stretch;
         flex-direction: column;
         justify-content: center;
         gap: 0.45rem;
@@ -776,15 +776,38 @@ body {
     }
 
     .mc-signal {
-        flex-direction: row;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 4.25rem;
         align-items: flex-end;
         gap: 0.5rem;
     }
 
     .mc-player-count {
-        flex-direction: row;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 4.25rem;
         align-items: baseline;
         gap: 0.5rem;
+    }
+
+    .mc-signal__bars,
+    .mc-player-count span {
+        justify-self: end;
+    }
+
+    .mc-signal__label,
+    .mc-player-count strong {
+        grid-column: 2;
+        justify-self: end;
+    }
+
+    .mc-player-count span {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .mc-player-count strong {
+        grid-row: 1;
+        white-space: nowrap;
     }
 
     .mc-server-panel__footer {

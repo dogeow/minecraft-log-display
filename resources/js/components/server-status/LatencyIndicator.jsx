@@ -18,6 +18,7 @@ export default function LatencyIndicator({ latency, isOnline }) {
   return (
     <div
       className={`mc-signal ${isOnline ? "mc-signal--online" : "mc-signal--offline"}`}
+      role="img"
       aria-label={label}
       title={label}
       data-online={isOnline ? "true" : "false"}
@@ -33,7 +34,11 @@ export default function LatencyIndicator({ latency, isOnline }) {
         {!isOnline && <span className="mc-signal__cross">×</span>}
       </div>
       <span className="mc-signal__label">
-        {isOnline && Number.isFinite(latency) ? `${latency} ms` : "离线"}
+        {isOnline
+          ? Number.isFinite(latency)
+            ? `${latency} ms`
+            : "延迟未知"
+          : "离线"}
       </span>
     </div>
   );

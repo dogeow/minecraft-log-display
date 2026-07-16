@@ -24,14 +24,13 @@ export default function ServerOverview({ serverStatus }) {
           {serverStatus.favicon ? (
             <img src={serverStatus.favicon} alt="服务器图标" />
           ) : (
-            <span aria-label="没有服务器图标">?</span>
+            <span role="img" aria-label="没有服务器图标">
+              ?
+            </span>
           )}
         </div>
 
         <div className="mc-server-copy">
-          <div className="mc-server-state">
-            {isOnline ? "世界可进入" : "世界暂时不可进入"}
-          </div>
           <h1
             className="mc-server-name"
             dangerouslySetInnerHTML={{ __html: serverStatus.motd_html }}
@@ -43,7 +42,7 @@ export default function ServerOverview({ serverStatus }) {
             latency={serverStatus.ping_latency_ms}
             isOnline={isOnline}
           />
-          <div className="mc-player-count" aria-label="在线玩家">
+          <div className="mc-player-count">
             <strong>
               {serverStatus.online_players} / {serverStatus.max_players}
             </strong>

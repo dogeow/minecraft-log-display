@@ -420,7 +420,10 @@ body {
 }
 
 .mc-server-version {
+    min-width: 0;
     color: #ffff55;
+    overflow-wrap: anywhere;
+    text-align: right;
 }
 
 .mc-server-panel--offline .mc-server-version {
@@ -463,20 +466,10 @@ body {
 }
 
 .mc-server-copy {
+    display: flex;
     min-width: 0;
-}
-
-.mc-server-state {
-    margin-bottom: 0.45rem;
-    color: #55ff55;
-    font-size: 0.72rem;
-    font-weight: 900;
-    letter-spacing: 0.1em;
-    text-shadow: 2px 2px 0 #111;
-}
-
-.mc-server-panel--offline .mc-server-state {
-    color: #ff7777;
+    align-self: stretch;
+    align-items: center;
 }
 
 .mc-server-name {
@@ -484,7 +477,7 @@ body {
     overflow-x: auto;
     overflow-y: hidden;
     color: #fff;
-    font-size: clamp(1.25rem, 3vw, 1.8rem);
+    font-size: clamp(1.4rem, 2.7vw, 1.95rem);
     font-weight: 800;
     line-height: 1.35;
     scrollbar-width: none;
@@ -553,7 +546,7 @@ body {
 
 .mc-signal__label {
     color: #55ff55;
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     font-weight: 800;
     text-shadow: 1px 1px 0 #111;
 }
@@ -577,11 +570,16 @@ body {
 
 .mc-player-count span {
     color: #aaa;
-    font-size: 0.66rem;
+    font-size: 0.72rem;
 }
 
 .mc-server-panel--offline .mc-player-count strong {
-    color: #777;
+    color: #aaa;
+}
+
+.mc-server-panel__footer span {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .mc-notice {
@@ -715,6 +713,83 @@ body {
     image-rendering: pixelated;
 }
 
+@media (max-width: 767px) {
+    .mc-server-panel {
+        box-shadow: inset 3px 3px 0 #5c5c5c, inset -3px -3px 0 #191919, 5px 5px 0 rgba(25, 39, 46, 0.3);
+    }
+
+    .mc-server-panel__header,
+    .mc-server-panel__footer {
+        padding-right: 0.75rem;
+        padding-left: 0.75rem;
+    }
+
+    .mc-server-panel__body {
+        grid-template-areas:
+            "icon connection"
+            "copy copy";
+        grid-template-columns: 4.5rem minmax(0, 1fr);
+        min-height: 0;
+        align-items: center;
+        column-gap: 1rem;
+        row-gap: 1rem;
+        padding: 1rem 0.75rem;
+    }
+
+    .mc-server-icon {
+        grid-area: icon;
+        width: 4.5rem;
+        height: 4.5rem;
+        font-size: 2.3rem;
+    }
+
+    .mc-server-copy {
+        grid-area: copy;
+        display: block;
+        width: 100%;
+        padding-top: 1rem;
+        border-top: 2px solid #171717;
+        box-shadow: 0 -2px 0 #484848;
+    }
+
+    .mc-server-name {
+        width: 100%;
+        overflow: visible;
+        font-size: clamp(1.05rem, 4.6vw, 1.35rem);
+        letter-spacing: -0.025em;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+
+    .mc-server-connection {
+        display: grid;
+        grid-area: connection;
+        grid-template-columns: minmax(3.5rem, 1fr) auto;
+        min-width: 0;
+        align-self: stretch;
+        align-items: center;
+        gap: 0.75rem;
+        border-left: 2px solid #171717;
+        padding-left: 1rem;
+        box-shadow: -2px 0 0 #484848;
+    }
+
+    .mc-signal {
+        align-items: flex-start;
+    }
+
+    .mc-player-count {
+        align-items: flex-end;
+    }
+
+    .mc-server-panel__footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.35rem;
+    }
+}
+
 @media (max-width: 640px) {
     .mc-brand__copy strong {
         font-size: 1.1rem;
@@ -746,72 +821,6 @@ body {
     .mc-cloud--far {
         top: 27rem;
         right: -3rem;
-    }
-
-    .mc-server-panel {
-        box-shadow: inset 3px 3px 0 #5c5c5c, inset -3px -3px 0 #191919, 5px 5px 0 rgba(25, 39, 46, 0.3);
-    }
-
-    .mc-server-panel__header,
-    .mc-server-panel__footer {
-        padding-right: 0.75rem;
-        padding-left: 0.75rem;
-    }
-
-    .mc-server-panel__body {
-        grid-template-columns: 4.25rem minmax(0, 1fr);
-        gap: 0.9rem;
-        padding: 1rem;
-    }
-
-    .mc-server-icon {
-        width: 4.25rem;
-        height: 4.25rem;
-        font-size: 2.3rem;
-    }
-
-    .mc-server-copy {
-        display: contents;
-    }
-
-    .mc-server-state {
-        grid-column: 2;
-        margin-bottom: 0;
-    }
-
-    .mc-server-name {
-        grid-column: 1 / -1;
-        width: 100%;
-        font-size: clamp(0.75rem, 3.7vw, 0.9rem);
-    }
-
-    .mc-server-connection {
-        grid-column: 1 / -1;
-        min-width: 0;
-        align-self: auto;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        border-top: 2px solid #171717;
-        border-left: 0;
-        padding-top: 0.9rem;
-        padding-left: 0;
-        box-shadow: 0 -2px 0 #484848;
-    }
-
-    .mc-signal,
-    .mc-player-count {
-        align-items: flex-start;
-    }
-
-    .mc-player-count {
-        align-items: flex-end;
-    }
-
-    .mc-server-panel__footer {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.35rem;
     }
 
     .mc-notice {

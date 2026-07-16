@@ -36,11 +36,6 @@ export default function ServerOverview({ serverStatus }) {
             className="mc-server-name"
             dangerouslySetInnerHTML={{ __html: serverStatus.motd_html }}
           />
-          <div className="mc-server-endpoint">
-            <span>{serverStatus.display_subtitle}</span>
-            <span aria-hidden="true">•</span>
-            <span>{serverStatus.endpoint}</span>
-          </div>
         </div>
 
         <div className="mc-server-connection">

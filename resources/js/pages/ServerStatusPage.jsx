@@ -18,7 +18,7 @@ export default function ServerStatusPage({ serverStatus }) {
       <main className="mc-world-stage">
         <SkyDecoration isDark={isDark} onToggle={toggleTheme} />
 
-        <div className="relative z-10 mx-auto w-full max-w-4xl px-4 pb-44 pt-24 sm:px-6">
+        <div className="relative z-10 mx-auto w-full max-w-5xl px-4 pb-44 pt-24 sm:px-6">
           <ServerOverview serverStatus={serverStatus} />
           <StatusNotices serverStatus={serverStatus} />
           <PlayerGrid players={serverStatus.players} />

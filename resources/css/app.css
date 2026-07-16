@@ -446,11 +446,7 @@ body {
     place-items: center;
     overflow: hidden;
     border: 4px solid #111;
-    background:
-        linear-gradient(45deg, #3c3c3c 25%, transparent 25%) 0 0 / 16px 16px,
-        linear-gradient(45deg, transparent 75%, #3c3c3c 75%) 0 0 / 16px 16px,
-        linear-gradient(45deg, transparent 75%, #3c3c3c 75%) 8px -8px / 16px 16px,
-        linear-gradient(45deg, #3c3c3c 25%, #252525 25%) 8px -8px / 16px 16px;
+    background: #000;
     color: #777;
     font-size: 3rem;
     font-weight: 900;
@@ -774,8 +770,19 @@ body {
         font-size: 2.3rem;
     }
 
+    .mc-server-copy {
+        display: contents;
+    }
+
+    .mc-server-state {
+        grid-column: 2;
+        margin-bottom: 0;
+    }
+
     .mc-server-name {
-        font-size: 1.1rem;
+        grid-column: 1 / -1;
+        width: 100%;
+        font-size: clamp(0.75rem, 3.7vw, 0.9rem);
     }
 
     .mc-server-connection {

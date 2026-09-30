@@ -3,7 +3,6 @@ import { useTheme } from "../contexts/ThemeContext";
 import SkyBackground from "../components/SkyBackground";
 import SkyDecoration from "../components/SkyDecoration";
 import GrassFooter from "../components/GrassFooter";
-import PlayerGrid from "../components/server-status/PlayerGrid";
 import ServerOverview from "../components/server-status/ServerOverview";
 import StatusNotices from "../components/server-status/StatusNotices";
 
@@ -23,11 +22,6 @@ export default function ServerStatusPage({ serverStatus, receivedAt }) {
           <ServerOverview serverStatus={serverStatus} />
           <StatusControls receivedAt={receivedAt} />
           <StatusNotices serverStatus={serverStatus} />
-          <PlayerGrid
-            players={serverStatus.players}
-            isOnline={serverStatus.is_online}
-            queryAvailable={serverStatus.query_available}
-          />
         </div>
       </main>
 

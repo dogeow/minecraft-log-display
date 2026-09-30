@@ -1265,10 +1265,7 @@ body {
     color: #dbe6fa;
     background: rgb(7 17 38 / 0.7);
 }
-.mc-player-empty {
-    padding: 1.5rem;
-    background: rgb(255 255 255 / 0.15);
-    border: 1px dashed currentColor;
-    border-radius: 0.65rem;
-    font-size: 0.8rem;
+
+.archive-list-shell {
+    padding-top: 1rem;
 }

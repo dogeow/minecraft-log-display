@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LogOut, Menu, Moon, ShieldCheck, Sun, X } from "lucide-react";
+import { LogOut, Menu, ShieldCheck, X } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
 
 export default function Nav({ isAdmin }) {
   const location = useLocation();
   const navRef = useRef(null);
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const navLinks = [
@@ -100,39 +100,27 @@ export default function Nav({ isAdmin }) {
               {logout}
             </div>
           )}
-          <div className="flex items-center gap-3">
+          {!isAdmin && (
+            <Link
+              to="/login"
+              className={`mc-nav-link inline-flex items-center gap-1.5 ${textColor}`}
+            >
+              <ShieldCheck size={16} aria-hidden="true" />
+              管理入口
+            </Link>
+          )}
+          {isAdmin && (
             <button
               type="button"
-              onClick={toggleTheme}
-              className={`archive-icon-button ${textColor}`}
-              aria-label={
-                theme === "dark" ? "切换为日间模式" : "切换为夜间模式"
-              }
+              className={`archive-icon-button archive-menu-toggle ${textColor}`}
+              onClick={() => setMenuOpen((value) => !value)}
+              aria-expanded={menuOpen}
+              aria-controls="mobile-navigation"
+              aria-label={menuOpen ? "关闭导航菜单" : "打开导航菜单"}
             >
-              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+              {menuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
-            {!isAdmin && (
-              <Link
-                to="/login"
-                className={`mc-nav-link inline-flex items-center gap-1.5 ${textColor}`}
-              >
-                <ShieldCheck size={16} aria-hidden="true" />
-                管理入口
-              </Link>
-            )}
-            {isAdmin && (
-              <button
-                type="button"
-                className={`archive-icon-button archive-menu-toggle ${textColor}`}
-                onClick={() => setMenuOpen((value) => !value)}
-                aria-expanded={menuOpen}
-                aria-controls="mobile-navigation"
-                aria-label={menuOpen ? "关闭导航菜单" : "打开导航菜单"}
-              >
-                {menuOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
-            )}
-          </div>
+          )}
           {/* Mobile dropdown */}
           {isAdmin && menuOpen && (
             <div id="mobile-navigation" className="archive-mobile-nav">

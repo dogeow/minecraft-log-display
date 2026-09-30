@@ -84,19 +84,7 @@ function AdminDashboard() {
   );
   return (
     <main className="archive-shell">
-      <header className="archive-heading">
-        <div>
-          <p className="archive-eyebrow">ADMIN WORKSPACE</p>
-          <h1>服务器管理控制台</h1>
-          <p className="text-muted-foreground">
-            从玩家活动到聊天档案，快速找到需要的记录
-          </p>
-        </div>
-        <span className="archive-admin-badge">
-          <ShieldCheck size={16} aria-hidden="true" />
-          管理员
-        </span>
-      </header>
+      <h1 className="sr-only">服务器管理控制台</h1>
       <div className="archive-dashboard-banner">
         <div>
           <p className="archive-eyebrow">玩家活动快览</p>

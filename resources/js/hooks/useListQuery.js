@@ -1,26 +1,21 @@
 import { useSearchParams } from "react-router-dom";
+import { updateListQuery } from "../lib/listQuery";
 
-export default function useListQuery() {
+export default function useListQuery(defaults = {}) {
   const [searchParams, setSearchParams] = useSearchParams();
   const search = searchParams.get("search") || "";
-  const sort = searchParams.get("sort") || "";
-  const direction = searchParams.get("direction") || "asc";
+  const sort = searchParams.get("sort") || defaults.sort || "";
+  const direction =
+    searchParams.get("direction") || defaults.direction || "desc";
 
-  const setSearch = (value) => {
-    const params = new URLSearchParams(searchParams);
-    if (value) params.set("search", value);
-    else params.delete("search");
-    setSearchParams(params);
-  };
-
-  const toggleSort = (field) => {
-    const params = new URLSearchParams(searchParams);
-    const nextDirection =
-      sort === field && direction === "asc" ? "desc" : "asc";
-    params.set("sort", field);
-    params.set("direction", nextDirection);
-    setSearchParams(params);
-  };
+  const setFilters = (values) =>
+    setSearchParams(updateListQuery(searchParams, values));
+  const setSearch = (value) => setFilters({ search: value.trim() });
+  const toggleSort = (field) =>
+    setFilters({
+      sort: field,
+      direction: sort === field && direction === "asc" ? "desc" : "asc",
+    });
 
   return {
     search,
@@ -28,6 +23,7 @@ export default function useListQuery() {
     direction,
     searchParams,
     setSearch,
+    setFilters,
     toggleSort,
   };
 }

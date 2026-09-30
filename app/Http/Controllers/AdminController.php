@@ -12,20 +12,15 @@ class AdminController extends Controller
     /**
      * 显示管理员登录表单.
      *
-     * 已登录的管理员直接跳转到首页。
+     * 已登录的管理员直接跳转到管理控制台。
      */
     public function showLoginForm(): View|RedirectResponse
     {
         if (Auth::check() && Auth::user()->is_admin) {
-            return redirect('/');
+            return redirect('/admin');
         }
 
-        $errors = session('errors') ? session('errors')->all() : [];
-
-        return view('app', [
-            'errors' => $errors,
-            'isAdmin' => false,
-        ]);
+        return view('app');
     }
 
     /**
@@ -36,8 +31,8 @@ class AdminController extends Controller
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'username' => 'required',
-            'password' => 'required',
+            'username' => 'required|string|max:100',
+            'password' => 'required|string',
         ]);
 
         if (Auth::attempt($credentials)) {
@@ -45,17 +40,17 @@ class AdminController extends Controller
             if ($user->is_admin) {
                 $request->session()->regenerate();
 
-                return redirect()->intended('/');
+                return redirect()->intended('/admin');
             }
 
             Auth::logout();
 
-            return back()->withErrors([
+            return back()->withInput($request->only('username'))->withErrors([
                 'username' => '您不是管理员',
             ]);
         }
 
-        return back()->withErrors([
+        return back()->withInput($request->only('username'))->withErrors([
             'username' => '用户名或密码错误',
         ]);
     }

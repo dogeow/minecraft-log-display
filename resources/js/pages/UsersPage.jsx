@@ -1,3 +1,4 @@
+import { formatDuration } from "../lib/formatDuration";
 import { Badge } from "../components/ui/badge";
 import Pagination from "../components/Pagination";
 import DataTable from "../components/listing/DataTable";
@@ -28,17 +29,35 @@ export default function UsersPage({ users }) {
     {
       key: "username",
       header: sortableHeader("username", "用户名"),
+      ariaSort:
+        sort === "username"
+          ? direction === "asc"
+            ? "ascending"
+            : "descending"
+          : undefined,
       className: "px-4 py-2 text-left",
     },
     { key: "status", header: "状态", className: "px-4 py-2 text-left" },
     {
       key: "activity",
-      header: sortableHeader("last_logout_at", "离线/登录"),
+      header: sortableHeader("last_login_at", "最近登录"),
+      ariaSort:
+        sort === "last_login_at"
+          ? direction === "asc"
+            ? "ascending"
+            : "descending"
+          : undefined,
       className: "px-4 py-2 text-left",
     },
     {
       key: "duration",
-      header: "总在线时长",
+      header: sortableHeader("total_online_time", "总在线时长"),
+      ariaSort:
+        sort === "total_online_time"
+          ? direction === "asc"
+            ? "ascending"
+            : "descending"
+          : undefined,
       className: "px-4 py-2 text-left",
     },
     {
@@ -51,6 +70,7 @@ export default function UsersPage({ users }) {
   return (
     <ListPage title="用户列表">
       <SearchToolbar
+        status
         value={search}
         onChange={setSearch}
         clearTo="/users"
@@ -59,6 +79,9 @@ export default function UsersPage({ users }) {
       />
 
       <div className="space-y-4 md:hidden">
+        {users.data.length === 0 && (
+          <div className="archive-empty">没有找到玩家，请调整筛选条件</div>
+        )}
         {users.data.map((user) => (
           <div
             key={user.id}
@@ -66,13 +89,16 @@ export default function UsersPage({ users }) {
           >
             <div className="mb-2 flex items-center gap-3">
               <img
-                src={`https://crafthead.net/avatar/${user.username}`}
+                src={`https://crafthead.net/avatar/${encodeURIComponent(user.username)}`}
+                loading="lazy"
                 alt={user.username}
                 className="h-10 w-10 rounded-sm"
               />
               <div className="flex min-w-0 flex-1 items-center justify-between">
                 <div className="flex min-w-0 items-center gap-1">
-                  <span className="truncate font-semibold">{user.username}</span>
+                  <span className="truncate font-semibold">
+                    {user.username}
+                  </span>
                   {user.is_scientist == 1 && (
                     <Badge variant="default">科学家</Badge>
                   )}
@@ -117,9 +143,7 @@ export default function UsersPage({ users }) {
                 {user.is_online ? "在线" : "离线"}
               </Badge>
             </td>
-            <td className="px-4 py-2">
-              {user.is_online ? user.last_login_at : user.last_logout_at}
-            </td>
+            <td className="px-4 py-2">{user.last_login_at || "—"}</td>
             <td className="px-4 py-2">
               {formatDuration(user.total_online_time)}
             </td>
@@ -133,11 +157,4 @@ export default function UsersPage({ users }) {
       />
     </ListPage>
   );
-}
-
-function formatDuration(seconds) {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }

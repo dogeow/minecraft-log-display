@@ -1,3 +1,4 @@
+import StatusControls from "../components/server-status/StatusControls";
 import { useTheme } from "../contexts/ThemeContext";
 import SkyBackground from "../components/SkyBackground";
 import SkyDecoration from "../components/SkyDecoration";
@@ -6,7 +7,7 @@ import PlayerGrid from "../components/server-status/PlayerGrid";
 import ServerOverview from "../components/server-status/ServerOverview";
 import StatusNotices from "../components/server-status/StatusNotices";
 
-export default function ServerStatusPage({ serverStatus }) {
+export default function ServerStatusPage({ serverStatus, receivedAt }) {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
 
@@ -20,8 +21,13 @@ export default function ServerStatusPage({ serverStatus }) {
 
         <div className="relative z-10 mx-auto w-full max-w-5xl px-4 pb-44 pt-24 sm:px-6">
           <ServerOverview serverStatus={serverStatus} />
+          <StatusControls receivedAt={receivedAt} />
           <StatusNotices serverStatus={serverStatus} />
-          <PlayerGrid players={serverStatus.players} />
+          <PlayerGrid
+            players={serverStatus.players}
+            isOnline={serverStatus.is_online}
+            queryAvailable={serverStatus.query_available}
+          />
         </div>
       </main>
 

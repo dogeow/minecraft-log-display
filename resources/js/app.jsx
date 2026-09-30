@@ -12,9 +12,12 @@ import DailyStatsPage from "./pages/DailyStatsPage";
 import LoginsPage from "./pages/LoginsPage";
 import ChatPage from "./pages/ChatPage";
 import LoginLocationsPage from "./pages/LoginLocationsPage";
+import AdminPage from "./pages/AdminPage";
+import { appConfig as initialConfig } from "./lib/appConfig";
+import { fetchJson } from "./lib/api";
 import LoginPage from "./pages/LoginPage";
 
-const fetcher = (url) => fetch(url).then((r) => r.json());
+const fetcher = fetchJson;
 
 function App() {
   return (
@@ -25,7 +28,12 @@ function App() {
 }
 
 function AppInner() {
-  const { data: adminData } = useSWR("/api/is-admin", fetcher);
+  const {
+    data: adminData,
+    error: adminError,
+    isLoading: adminLoading,
+    mutate: checkAdmin,
+  } = useSWR("/api/is-admin", fetcher, { shouldRetryOnError: false });
   const isAdmin = adminData?.isAdmin ?? false;
 
   return (
@@ -35,15 +43,20 @@ function AppInner() {
         <Route
           path="/"
           element={
-            <ApiPage endpoint="/api/server-status">
-              {(data) => <ServerStatusPage serverStatus={data.serverStatus} />}
+            <ApiPage key="status" endpoint="/api/server-status">
+              {(data) => (
+                <ServerStatusPage
+                  serverStatus={data.serverStatus}
+                  receivedAt={data.receivedAt}
+                />
+              )}
             </ApiPage>
           }
         />
         <Route
           path="/users"
           element={
-            <ApiPage endpoint="/api/users" includeSearch>
+            <ApiPage key="users" endpoint="/api/users" includeSearch>
               {(data) => <UsersPage users={data.paginatedData} />}
             </ApiPage>
           }
@@ -51,7 +64,11 @@ function AppInner() {
         <Route
           path="/daily-stats"
           element={
-            <ApiPage endpoint="/api/daily-stats" includeSearch>
+            <ApiPage
+              key="daily-stats"
+              endpoint="/api/daily-stats"
+              includeSearch
+            >
               {(data) => <DailyStatsPage dailyStats={data.paginatedData} />}
             </ApiPage>
           }
@@ -59,7 +76,7 @@ function AppInner() {
         <Route
           path="/logins"
           element={
-            <ApiPage endpoint="/api/logins" includeSearch>
+            <ApiPage key="logins" endpoint="/api/logins" includeSearch>
               {(data) => <LoginsPage logins={data.paginatedData} />}
             </ApiPage>
           }
@@ -67,12 +84,9 @@ function AppInner() {
         <Route
           path="/chat"
           element={
-            <ApiPage endpoint="/api/chat" includeSearch>
+            <ApiPage key="chat" endpoint="/api/chat" includeSearch>
               {(data) => (
-                <ChatPage
-                  chatMessages={data.paginatedData}
-                  isAdmin={isAdmin}
-                />
+                <ChatPage chatMessages={data.paginatedData} isAdmin={isAdmin} />
               )}
             </ApiPage>
           }
@@ -80,7 +94,11 @@ function AppInner() {
         <Route
           path="/login-locations"
           element={
-            <ApiPage endpoint="/api/login-locations" includeSearch>
+            <ApiPage
+              key="login-locations"
+              endpoint="/api/login-locations"
+              includeSearch
+            >
               {(data) => (
                 <LoginLocationsPage
                   locations={data.paginatedData}
@@ -90,7 +108,37 @@ function AppInner() {
             </ApiPage>
           }
         />
-        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/admin"
+          element={
+            <AdminPage
+              isAdmin={isAdmin}
+              loading={adminLoading}
+              error={adminError}
+              retry={() => checkAdmin()}
+            />
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <LoginPage
+              errors={initialConfig.errors}
+              initialUsername={initialConfig.username}
+            />
+          }
+        />
+        <Route
+          path="*"
+          element={
+            <main className="archive-shell">
+              <section className="archive-empty">
+                <h1>没有找到这个页面</h1>
+                <a href="/">返回服务器首页</a>
+              </section>
+            </main>
+          }
+        />
       </Routes>
     </div>
   );

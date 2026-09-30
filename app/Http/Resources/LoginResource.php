@@ -11,7 +11,7 @@ class LoginResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'login_at' => $this->login_at->format('Y-m-d H:i:s'),
+            'login_at' => $this->login_at?->format('Y-m-d H:i:s'),
             'logout_at' => $this->logout_at?->format('Y-m-d H:i:s'),
             'duration' => $this->duration,
             'user' => [

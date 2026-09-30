@@ -9,5 +9,13 @@
 </head>
 <body>
     <div id="app"></div>
+    @php
+        $appConfig = [
+            'timezone' => config('app.timezone'),
+            'errors' => $errors->all(),
+            'username' => old('username', ''),
+        ];
+    @endphp
+    <script id="app-config" type="application/json">@json($appConfig)</script>
 </body>
 </html>

@@ -12,12 +12,16 @@ export default function DataTable({
   emptyText = "没有找到记录",
 }) {
   return (
-    <div className={`overflow-x-auto rounded-md border ${className}`}>
-      <table className={`w-full ${minWidth}`}>
+    <div
+      className={`archive-table overflow-x-auto rounded-xl border ${className}`}
+    >
+      <table aria-label="记录列表" className={`w-full ${minWidth}`}>
         <thead>
           <tr className="border-b bg-muted/50">
             {columns.map((column) => (
               <th
+                scope="col"
+                aria-sort={column.ariaSort}
                 key={column.key}
                 className={
                   column.className ||

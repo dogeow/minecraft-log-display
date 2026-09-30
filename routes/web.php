@@ -22,6 +22,7 @@ Route::prefix('api')->group(function () {
 });
 
 // 管理员认证
+Route::get('/login', [AdminController::class, 'showLoginForm'])->name('login');
 Route::middleware('guest', 'throttle:5,1')->group(function () {
     Route::post('/login', [AdminController::class, 'login'])->name('login.post');
 });

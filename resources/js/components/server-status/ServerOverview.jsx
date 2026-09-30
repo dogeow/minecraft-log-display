@@ -33,8 +33,16 @@ export default function ServerOverview({ serverStatus }) {
         <div className="mc-server-copy">
           <h1
             className="mc-server-name"
-            dangerouslySetInnerHTML={{ __html: serverStatus.motd_html }}
-          />
+            dangerouslySetInnerHTML={
+              serverStatus.motd_html
+                ? { __html: serverStatus.motd_html }
+                : undefined
+            }
+          >
+            {!serverStatus.motd_html
+              ? serverStatus.display_name || "Minecraft 服务器"
+              : null}
+          </h1>
         </div>
 
         <div className="mc-server-connection">

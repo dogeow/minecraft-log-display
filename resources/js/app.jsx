@@ -43,11 +43,11 @@ function AppInner() {
         <Route
           path="/"
           element={
-            <ApiPage key="status" endpoint="/api/server-status">
-              {(data) => (
+            <ApiPage key="status" endpoint="/api/server-status" liveUpdates>
+              {(data, updates) => (
                 <ServerStatusPage
                   serverStatus={data.serverStatus}
-                  receivedAt={data.receivedAt}
+                  updates={updates}
                 />
               )}
             </ApiPage>

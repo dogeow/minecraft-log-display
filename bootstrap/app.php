@@ -18,6 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('minecraft:process-logs')
             ->everySecond()
             ->sendOutputTo(storage_path('logs/process.log'), true);
+
+        $schedule->command('minecraft:publish-status')
+            ->everyTenSeconds()
+            ->withoutOverlapping(1)
+            ->when(fn () => config('realtime.enabled') && config('broadcasting.default') === 'reverb');
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

@@ -1,6 +1,6 @@
 import LatencyIndicator from "./LatencyIndicator";
 
-export default function ServerOverview({ serverStatus }) {
+export default function ServerOverview({ serverStatus, updates }) {
   const isOnline = serverStatus.is_online;
   const softwareLabel = [serverStatus.server_flavor, serverStatus.software]
     .filter(Boolean)
@@ -61,6 +61,17 @@ export default function ServerOverview({ serverStatus }) {
 
       <footer className="mc-server-panel__footer">
         <span>{softwareLabel || "未知服务端"}</span>
+        <span className="mc-update-status" role="status">
+          {updates?.error
+            ? "更新失败，显示上次状态"
+            : updates?.mode === "live"
+              ? "实时更新"
+              : updates?.mode === "connecting"
+                ? "实时连接中"
+                : updates?.mode === "paused"
+                  ? "更新已暂停"
+                  : "自动更新 · 每分钟"}
+        </span>
         <span>探测用时 {serverStatus.timer} 秒</span>
       </footer>
     </section>

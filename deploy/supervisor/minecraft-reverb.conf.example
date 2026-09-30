@@ -1,0 +1,17 @@
+; EXAMPLE ONLY. Replace the application path and OS user before installing.
+; This file is not automatically installed or enabled by composer/npm.
+[program:minecraft-reverb]
+directory=/path/to/minecraft-log-display
+command=/usr/bin/php /path/to/minecraft-log-display/artisan reverb:start --host=127.0.0.1 --port=8080
+user=www-data
+autostart=true
+autorestart=true
+startsecs=3
+startretries=3
+stopasgroup=true
+killasgroup=true
+stopwaitsecs=20
+redirect_stderr=true
+stdout_logfile=/path/to/minecraft-log-display/storage/logs/reverb-supervisor.log
+stdout_logfile_maxbytes=10MB
+stdout_logfile_backups=3

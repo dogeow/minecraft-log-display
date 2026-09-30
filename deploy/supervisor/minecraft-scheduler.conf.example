@@ -1,0 +1,15 @@
+; OPTIONAL. Do not install if schedule:run cron or schedule:work already exists.
+; Running two schedulers would also duplicate the existing Minecraft log importer.
+[program:minecraft-scheduler]
+directory=/path/to/minecraft-log-display
+command=/usr/bin/php /path/to/minecraft-log-display/artisan schedule:work
+user=www-data
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+stopwaitsecs=70
+redirect_stderr=true
+stdout_logfile=/path/to/minecraft-log-display/storage/logs/scheduler-supervisor.log
+stdout_logfile_maxbytes=10MB
+stdout_logfile_backups=3

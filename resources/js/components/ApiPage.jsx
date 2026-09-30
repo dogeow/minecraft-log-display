@@ -1,4 +1,5 @@
 import useSWR from "swr";
+import useServerStatusUpdates from "../hooks/useServerStatusUpdates";
 import { Link, useLocation } from "react-router-dom";
 import { RefreshCw } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
@@ -18,13 +19,21 @@ function LoadingSkeleton() {
   );
 }
 
-export default function ApiPage({ endpoint, includeSearch = false, children }) {
+export default function ApiPage({
+  endpoint,
+  includeSearch = false,
+  liveUpdates = false,
+  children,
+}) {
   const location = useLocation();
   const url = `${endpoint}${includeSearch ? location.search : ""}`;
   const { data, error, isLoading, isValidating, mutate } = useSWR(url, {
     keepPreviousData: true,
     shouldRetryOnError: false,
+    revalidateOnFocus: !liveUpdates,
+    revalidateOnReconnect: !liveUpdates,
   });
+  const updateMode = useServerStatusUpdates(liveUpdates);
 
   if (!data && !error) return <LoadingSkeleton />;
   if (!data && error)
@@ -68,7 +77,7 @@ export default function ApiPage({ endpoint, includeSearch = false, children }) {
           </Button>
         </div>
       )}
-      {children(data)}
+      {children(data, { mode: updateMode, error })}
     </div>
   );
 }

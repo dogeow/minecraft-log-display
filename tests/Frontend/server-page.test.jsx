@@ -61,7 +61,9 @@ it("shows each online player on the grass only, with no standalone player panel"
   expect(container.querySelector(".mc-player-section")).toBeNull();
   expect(container.querySelector(".mc-player-grid")).toBeNull();
   expect(screen.queryByText("在线冒险家")).toBeNull();
-  expect(screen.getByRole("button", { name: "刷新状态" })).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "刷新状态" })).toBeNull();
+  expect(screen.queryByRole("checkbox", { name: "每分钟自动刷新" })).toBeNull();
+  expect(container.querySelector(".mc-status-controls")).toBeNull();
 });
 
 it("keeps empty grass without adding an empty player-list panel", () => {

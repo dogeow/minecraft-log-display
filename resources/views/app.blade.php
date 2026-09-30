@@ -14,6 +14,14 @@
             'timezone' => config('app.timezone'),
             'errors' => $errors->all(),
             'username' => old('username', ''),
+            'realtime' => [
+                'enabled' => config('realtime.enabled') && config('broadcasting.default') === 'reverb',
+                'key' => config('realtime.public.key'),
+                'host' => config('realtime.public.host'),
+                'port' => config('realtime.public.port'),
+                'scheme' => config('realtime.public.scheme'),
+                'fallbackMs' => config('realtime.fallback_ms'),
+            ],
         ];
     @endphp
     <script id="app-config" type="application/json">@json($appConfig)</script>
